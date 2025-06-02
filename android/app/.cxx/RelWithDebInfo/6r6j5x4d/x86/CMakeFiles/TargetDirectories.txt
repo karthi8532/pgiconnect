@@ -1,0 +1,2 @@
+/Users/nijatech/flutter wokspace studio/pgiconnect/android/app/.cxx/RelWithDebInfo/6r6j5x4d/x86/CMakeFiles/edit_cache.dir
+/Users/nijatech/flutter wokspace studio/pgiconnect/android/app/.cxx/RelWithDebInfo/6r6j5x4d/x86/CMakeFiles/rebuild_cache.dir
