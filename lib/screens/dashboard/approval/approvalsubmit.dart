@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:dropdown_search/dropdown_search.dart';
@@ -7,11 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:pgiconnect/const/pref.dart';
 import 'package:pgiconnect/data/apiservice.dart';
 import 'package:pgiconnect/model/singleclaimmodel.dart';
-import 'package:pgiconnect/screens/dashboard/goodsreceipt/productlist.dart';
 import 'package:pgiconnect/screens/login/utils/app_utils.dart';
 import 'package:pgiconnect/service/appcolor.dart';
 import 'package:pgiconnect/util/urllauncherservice.dart';
-import 'package:pgiconnect/widgets/tab_item.dart';
 
 class ApprovalSubmitPage extends StatefulWidget {
   int docEntry = 0;
@@ -27,6 +26,8 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
   TextEditingController cusNamecontroller = TextEditingController();
   TextEditingController poNumcontroller = TextEditingController();
   TextEditingController supplierNamecontroller = TextEditingController();
+  TextEditingController claimReason = TextEditingController();
+
   TextEditingController sellTypecontroller = TextEditingController();
   TextEditingController destCountrycontroller = TextEditingController();
   TextEditingController suppliercountrycontroller = TextEditingController();
@@ -75,6 +76,7 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
     effectGPcontroller.dispose();
     claimAmount.dispose();
     customerClaim.dispose();
+    claimReason.dispose();
     super.dispose();
   }
 
@@ -154,7 +156,7 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
     setState(() {
       loading = true;
     });
-
+    print(Prefs.getDBName('DBName'));
     apiService
         .getsingleclaimlist(Prefs.getDBName('DBName'),
             Prefs.getBranchID('BranchID'), widget.docEntry, widget.status)
@@ -166,10 +168,6 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
         if (jsonDecode(response.body)['success'] == true) {
           setState(() {
             singleclaimlist.clear();
-            // singleclaimlist = jsonDecode(response.body)['result']
-            //     .map<SingleClaimModel>(
-            //         (item) => SingleClaimModel.fromJson(item))
-            //     .toList();
 
             singleclaimlist = (jsonDecode(response.body)['result'] as List)
                 .map((e) => SingleClaimModel.fromJson(e))
@@ -178,6 +176,10 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
             invNumercontroller.text = singleclaimlist.first.invNum.toString();
             cusNamecontroller.text = singleclaimlist.first.cusName.toString();
             poNumcontroller.text = singleclaimlist.first.poNum.toString();
+            supplierNamecontroller.text =
+                singleclaimlist.first.venName.toString();
+
+            claimReason.text = singleclaimlist.first.cusClaim.toString();
 
             sellTypecontroller.text = singleclaimlist.first.sellType.toString();
             destCountrycontroller.text =
@@ -235,6 +237,9 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
   void postingitem() async {
     postitem.clear();
 
+    for (var command in singleclaimlist.first.commands!) {
+      command.approverStatus = command.tempStatus;
+    }
     for (int i = 0; i < singleclaimlist.first.commands!.length; i++) {
       postitem.add(PostApproval(
           singleclaimlist.first.docEntry,
@@ -277,12 +282,11 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
     };
     if (isForwared == true) {
       postitem.add(PostApproval.fromJson(newItemMap));
-      print(jsonEncode(postitem));
     }
     setState(() {
       loading = true;
     });
-
+    log(jsonEncode(postitem));
     apiService
         .postclaim(
             postitem, Prefs.getDBName('DBName'), Prefs.getBranchID('BranchID'))
@@ -364,11 +368,18 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
               supplierNamecontroller.text.toString(),
               Icons.person_2,
             ),
+            // const SizedBox(height: 5),
+            // _buildTextField(
+            //   "Sell Type",
+            //   sellTypecontroller.text.toString(),
+            //   Icons.sell,
+            // ),
             const SizedBox(height: 5),
+
             _buildTextField(
-              "Sell Type",
-              sellTypecontroller.text.toString(),
-              Icons.sell,
+              "Claim Reason",
+              claimReason.text.toString(),
+              Icons.person_2,
             ),
             const SizedBox(height: 5),
             _buildTextField(
@@ -382,29 +393,36 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
               suppliercountrycontroller.text.toString(),
               Icons.map,
             ),
-            const SizedBox(height: 5),
-            _buildTextField(
-              "ETA Date",
-              etadatecontroller.text.toString(),
-              Icons.date_range,
-            ),
-            const SizedBox(height: 5),
-            _buildTextField(
-              "Claim Intimation",
-              claimIntimationcontroller.text.toString(),
-              Icons.info,
-            ),
+            // const SizedBox(height: 5),
+            // _buildTextField(
+            //   "ETA Date",
+            //   etadatecontroller.text.toString(),
+            //   Icons.date_range,
+            // ),
+            // const SizedBox(height: 5),
+            // _buildTextField(
+            //   "Claim Intimation",
+            //   claimIntimationcontroller.text.toString(),
+            //   Icons.info,
+            // ),
             const SizedBox(height: 5),
             _buildTextField(
               "Aging",
               agingcontroller.text.toString(),
               Icons.date_range_outlined,
             ),
+
+            // const SizedBox(height: 5),
+            // _buildTextField(
+            //   "Effect on GP %",
+            //   effectGPcontroller.text.toString(),
+            //   Icons.percent,
+            // ),
             const SizedBox(height: 5),
             _buildTextField(
-              "Settlement Agreed With Customer",
-              settlementAgreementController.text.toString(),
-              Icons.cases,
+              "Claim Amount",
+              claimAmount.text.toString(),
+              Icons.request_page,
             ),
             const SizedBox(height: 5),
             _buildTextField(
@@ -414,15 +432,9 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
             ),
             const SizedBox(height: 5),
             _buildTextField(
-              "Effect on GP %",
-              effectGPcontroller.text.toString(),
-              Icons.percent,
-            ),
-            const SizedBox(height: 5),
-            _buildTextField(
-              "Claim Amount",
-              claimAmount.text.toString(),
-              Icons.request_page,
+              "Final Settlement",
+              settlementAgreementController.text.toString(),
+              Icons.cases,
             ),
           ],
         ),
@@ -432,36 +444,46 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
 
   Widget _buildTextField(String label, String hint, IconData icon) {
     return Container(
-        padding: EdgeInsets.all(8),
-        margin: EdgeInsets.all(4),
-        color: Colors.white,
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: Colors.grey,
-              size: 15,
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            Column(
+      padding: EdgeInsets.all(8),
+      margin: EdgeInsets.all(4),
+      color: Colors.white,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            color: Colors.grey,
+            size: 15,
+          ),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppUtils.buildNormalText(
-                  text: label,
-                  fontSize: 10,
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.black54,
+                  ),
+                  softWrap: true,
                 ),
-                AppUtils.buildNormalText(
-                    text: hint,
+                SizedBox(height: 2),
+                Text(
+                  hint,
+                  style: TextStyle(
                     fontSize: 12,
-                    maxLines: 1,
                     fontWeight: FontWeight.bold,
-                    overflow: TextOverflow.ellipsis),
+                    color: Colors.black,
+                  ),
+                  softWrap: true,
+                ),
               ],
-            )
-          ],
-        ));
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _textFornField(String label, String hint, IconData icon,
@@ -480,118 +502,116 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
   }
 
   Widget commentWidets() {
+    final currentUserId = Prefs.getEmpID('Id').toString();
+
     return SingleChildScrollView(
       child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: ListView.builder(
-              itemCount: singleclaimlist.first.commands!.length,
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                final command = singleclaimlist.first.commands![index];
-                selectedStatus = statusOption.entries.firstWhere(
-                    (entry) => entry.key == command.approverStatus,
-                    orElse: () => MapEntry("", ""));
-                List<Commands> filteredCommands = singleclaimlist
-                    .first.commands!
-                    .where((c) =>
-                        c.approverCode.toString() !=
-                        Prefs.getEmpID('Id').toString())
-                    .toList();
-                List<
-                    MapEntry<String,
-                        Commands>> approverItems = filteredCommands
-                    .map((cmd) => MapEntry(
-                        "${cmd.approverName} - ${cmd.department} - ${cmd.approverCode})",
-                        cmd))
-                    .toList();
-                return Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
+        padding: const EdgeInsets.all(12.0),
+        child: singleclaimlist.first.commands!.isNotEmpty
+            ? ListView.builder(
+                itemCount: singleclaimlist.first.commands!.length,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final command = singleclaimlist.first.commands![index];
+
+                  selectedStatus = statusOption.entries.firstWhere(
+                    (entry) => entry.key == command.tempStatus,
+                    orElse: () => MapEntry("P", "Pending"),
+                  );
+
+                  // Approver forwarding options excluding self
+                  final filteredCommands = singleclaimlist.first.commands!
+                      .where((c) => c.approverCode.toString() != currentUserId)
+                      .toList();
+
+                  // final approverItems = filteredCommands
+                  //     .map((cmd) => MapEntry(
+                  //           "${cmd.approverName} - ${cmd.department} - ${cmd.approverCode}",
+                  //           cmd,
+                  //         ))
+                  //     .toList();
+
+                  final bool isEditable =
+                      currentUserId == command.userId.toString() &&
+                          command.approverStatus == "P";
+                  final bool isForwardSelected = command.tempStatus == "F";
+
+                  final approverItems = singleclaimlist.first.commands!
+                      .where((c) => c.approverCode.toString() != currentUserId)
+                      .map((cmd) => MapEntry(
+                            "${cmd.approverName} - ${cmd.department} - ${cmd.approverCode}",
+                            cmd,
+                          ))
+                      .toList();
+
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    color: isEditable ? Colors.white : Colors.grey[300],
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          /// Row 1: Department & Status
+                          Row(
+                            children: [
+                              Expanded(
                                 flex: 4,
                                 child: AppUtils.buildNormalText(
-                                    text: command.department)),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Expanded(
+                                    text: command.department ?? ''),
+                              ),
+                              const SizedBox(width: 5),
+                              Expanded(
                                 flex: 3,
-                                child:
-                                    AppUtils.buildNormalText(text: "Status")),
-                          ],
-                        ),
-                        const SizedBox(height: 5),
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 5,
-                              child: TextField(
-                                enabled: Prefs.getEmpID('Id').toString() ==
-                                        command.approverCode.toString()
-                                    ? true
-                                    : false,
-                                keyboardType: TextInputType.multiline,
-                                maxLines: 1,
-                                controller: TextEditingController(
-                                    text: command.approverName ?? ''),
-                                decoration: InputDecoration(
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 10),
-                                  hintText: "",
-                                  focusedBorder: const OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          width: 1, color: Colors.grey)),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: const BorderSide(
-                                        color: Colors.black26, width: 1),
-                                  ),
-                                  disabledBorder: OutlineInputBorder(
-                                    borderSide: const BorderSide(
-                                        color: Colors.black26, width: 1),
+                                child: AppUtils.buildNormalText(text: "Status"),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 5),
+
+                          /// Row 2: ApproverName (readonly text field) & Status Dropdown
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 5,
+                                child: TextFormField(
+                                  initialValue: command.approverName ?? '',
+                                  readOnly: true,
+                                  enabled: isEditable,
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 10),
+                                    focusedBorder: const OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            width: 1, color: Colors.grey)),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                          color: Colors.black26, width: 1),
+                                    ),
+                                    disabledBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                          color: Colors.black26, width: 1),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Expanded(
+                              const SizedBox(width: 5),
+                              Expanded(
                                 flex: 5,
                                 child: DropdownSearch<MapEntry<String, String>>(
-                                  enabled: Prefs.getEmpID('Id').toString() ==
-                                      command.approverCode.toString(),
-                                  selectedItem: statusOption.entries.firstWhere(
-                                    (e) => e.key == command.approverStatus,
-                                    orElse: () => MapEntry("P", "Pending"),
-                                  ),
+                                  enabled: isEditable,
+                                  selectedItem: selectedStatus,
                                   items: statusOption.entries.toList(),
                                   itemAsString: (entry) => entry.value,
                                   onChanged: (entry) {
-                                    setState(() {
-                                      if (entry != null) {
-                                        setState(() {
-                                          // Update the command object with the selected status code
-                                          command.approverStatus = entry.key;
-
-                                          // if (entry.key == "F") {
-                                          //   command.appType = "Forwarded";
-                                          // } else {
-                                          //   command.appType = "Regular";
-                                          // }
-                                          print(entry.key);
-                                          print(entry.value);
-                                          entry.key == "F"
-                                              ? isForwared = true
-                                              : false;
-                                        });
-                                      }
-                                    });
+                                    if (entry != null) {
+                                      setState(() {
+                                        command.tempStatus = entry.key;
+                                        isForwared = entry.key == 'F';
+                                        print(isForwared);
+                                      });
+                                    }
                                   },
                                   popupProps:
                                       PopupProps.menu(showSearchBox: true),
@@ -602,157 +622,130 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
                                           horizontal: 10, vertical: 10),
                                       border: OutlineInputBorder(),
                                     ),
-                                  ),
-                                )),
-                          ],
-                        ),
-                        const SizedBox(height: 5),
-                        Row(
-                          children: [
-                            Expanded(
-                                flex: 4,
-                                child: AppUtils.buildNormalText(
-                                    text: "Forward To")),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Expanded(
-                                flex: 3,
-                                child: AppUtils.buildNormalText(text: "Date")),
-                          ],
-                        ),
-                        const SizedBox(height: 5),
-                        Row(
-                          children: [
-                            Expanded(
-                                flex: 5,
-                                child:
-                                    DropdownSearch<MapEntry<String, Commands>>(
-                                  enabled: Prefs.getEmpID('Id').toString() ==
-                                              command.approverCode.toString() &&
-                                          isForwared == true
-                                      ? true
-                                      : false,
-                                  items: approverItems,
-                                  itemAsString: (entry) =>
-                                      entry.key, // show "Name - Dept (Code)"
-                                  selectedItem:
-                                      null, // or assign based on some condition
-                                  onChanged: (entry) {
-                                    setState(() {
-                                      Commands selectedCmd = entry!.value;
-                                      print(
-                                          "Selected ApproverCode: ${selectedCmd.approverCode}");
-                                      for (int s = 0;
-                                          s <
-                                              singleclaimlist
-                                                  .first.commands!.length;
-                                          s++) {
-                                        if (singleclaimlist
-                                                .first.commands![s].approverCode
-                                                .toString() ==
-                                            selectedCmd.approverCode
-                                                .toString()) {
-                                          print(s);
-
-                                          selectedPosition = s;
-                                        }
-                                      }
-                                    });
-                                  },
-                                  dropdownBuilder: (context, entry) {
-                                    if (entry == null) return Text("");
-                                    return Text(
-                                      "${entry.value.approverName} - ${entry.value.department}",
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                      style: TextStyle(fontSize: 14),
-                                    );
-                                  },
-                                  popupProps:
-                                      PopupProps.menu(showSearchBox: true),
-                                  dropdownDecoratorProps:
-                                      DropDownDecoratorProps(
-                                    dropdownSearchDecoration: InputDecoration(
-                                      contentPadding: EdgeInsets.symmetric(
-                                          horizontal: 10, vertical: 10),
-                                      labelText: "",
-                                      border: OutlineInputBorder(),
-                                    ),
-                                  ),
-                                )),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Expanded(
-                              flex: 5,
-                              child: TextField(
-                                enabled: Prefs.getEmpID('Id').toString() ==
-                                        command.approverCode.toString()
-                                    ? true
-                                    : false,
-                                keyboardType: TextInputType.multiline,
-                                controller: TextEditingController(
-                                    text: command.appDate ?? ''),
-                                maxLines: 1,
-                                readOnly: true,
-                                decoration: InputDecoration(
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 8),
-                                  hintText: "",
-                                  focusedBorder: const OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          width: 1, color: Colors.grey)),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: const BorderSide(
-                                        color: Colors.black26, width: 1),
-                                  ),
-                                  disabledBorder: OutlineInputBorder(
-                                    borderSide: const BorderSide(
-                                        color: Colors.black26, width: 1),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 5),
-                        AppUtils.buildNormalText(text: "Comments"),
-                        const SizedBox(height: 5),
-                        TextField(
-                          enabled: Prefs.getEmpID('Id').toString() ==
-                                  command.approverCode.toString()
-                              ? true
-                              : false,
-                          keyboardType: TextInputType.multiline,
-                          controller: TextEditingController(
-                              text: command.remarks ?? ''),
-                          maxLines: 1,
-                          onChanged: (val) {
-                            command.remarks = val;
-                          },
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 8),
-                            hintText: "",
-                            focusedBorder: const OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(width: 1, color: Colors.grey)),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                  color: Colors.black26, width: 1),
-                            ),
-                            disabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                  color: Colors.black26, width: 1),
+                            ],
+                          ),
+                          const SizedBox(height: 5),
+
+                          /// Row 3: Forward To & Date
+                          Visibility(
+                            visible: isEditable && isForwardSelected,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 4,
+                                  child: AppUtils.buildNormalText(
+                                      text: "Forward To"),
+                                ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  flex: 3,
+                                  child: AppUtils.buildNormalText(text: "Date"),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 5),
+
+                          /// Row 4: Forward Dropdown & Date Field
+                          Visibility(
+                            visible: isEditable,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 5,
+                                  child: Visibility(
+                                      visible: isEditable && isForwardSelected,
+                                      child: DropdownSearch<
+                                          MapEntry<String, Commands>>(
+                                        enabled: isEditable,
+                                        selectedItem: approverItems.firstWhere(
+                                          (entry) =>
+                                              entry.value.approverCode ==
+                                                  command.toApproverCode &&
+                                              entry.value.approverCode != null,
+                                          orElse: () => approverItems.isNotEmpty
+                                              ? approverItems.first
+                                              : MapEntry("No Approver",
+                                                  Commands()), // Provide a fallback Commands instance
+                                        ),
+                                        items: approverItems,
+                                        itemAsString: (entry) => entry.key,
+                                        onChanged: (entry) {
+                                          setState(() {
+                                            command.toApproverCode =
+                                                entry?.value.approverCode;
+                                            command.fromApproverCode =
+                                                currentUserId;
+                                          });
+                                        },
+                                      )),
+                                ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  flex: 5,
+                                  child: TextFormField(
+                                    initialValue: command.appDate ?? '',
+                                    enabled: false,
+                                    readOnly: true,
+                                    decoration: InputDecoration(
+                                      contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 8),
+                                      focusedBorder: const OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                              width: 1, color: Colors.grey)),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: const BorderSide(
+                                            color: Colors.black26, width: 1),
+                                      ),
+                                      disabledBorder: OutlineInputBorder(
+                                        borderSide: const BorderSide(
+                                            color: Colors.black26, width: 1),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+
+                          /// Comments Field
+                          AppUtils.buildNormalText(text: "Comments"),
+                          const SizedBox(height: 5),
+                          TextFormField(
+                            initialValue: command.remarks ?? '',
+                            maxLines: 2,
+                            enabled: command.approverStatus == "P",
+                            onChanged: (val) {
+                              command.remarks = val;
+                            },
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 8),
+                              focusedBorder: const OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(width: 1, color: Colors.grey)),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                    color: Colors.black26, width: 1),
+                              ),
+                              disabledBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                    color: Colors.black26, width: 1),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              })),
+                  );
+                },
+              )
+            : Center(child: Text('No Data Found')),
+      ),
     );
   }
 
@@ -785,7 +778,8 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        singleclaimlist.first.attachmentPath!.isNotEmpty
+        singleclaimlist.first.attachmentPath != null ||
+                singleclaimlist.first.attachmentPath!.isNotEmpty
             ? ListView.builder(
                 itemCount: singleclaimlist.first.attachmentPath!.length,
                 shrinkWrap: true,

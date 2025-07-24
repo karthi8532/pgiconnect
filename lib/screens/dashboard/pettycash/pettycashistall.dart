@@ -416,11 +416,20 @@ class _PettryCashListState extends State<PettryCashList> {
         loading = false;
       });
       if (response.statusCode == 200 || response.statusCode < 300) {
-        pettrycashList.clear();
-        pettrycashList = jsonDecode(response.body)['result']
-            .map<PettyCashAllModel>((item) => PettyCashAllModel.fromJson(item))
-            .toList();
-        pendingCount = pettrycashList.length;
+        final body = jsonDecode(response.body);
+        final result = body['result'];
+
+        if (result != null && result is List) {
+          pettrycashList.clear();
+          pettrycashList = result
+              .map<PettyCashAllModel>(
+                  (item) => PettyCashAllModel.fromJson(item))
+              .toList();
+          pendingCount = pettrycashList.length;
+        } else {
+          pettrycashList.clear();
+          pendingCount = 0;
+        }
       } else if (response.statusCode == 401) {
         pettrycashList.clear();
         handleTokenExpired();

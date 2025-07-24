@@ -1,3 +1,24 @@
+int? toInt(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is double) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
+double? toDouble(dynamic value) {
+  if (value == null) return null;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
+String? toStringVal(dynamic value) {
+  if (value == null) return "";
+  return value.toString();
+}
+
 class SingleClaimModel {
   int? docEntry;
   int? docNum;
@@ -22,10 +43,12 @@ class SingleClaimModel {
   int? recoveryFromSup;
   int? effectonGP;
   double? claimAmt;
+
   List<Items>? items;
   List<Commands>? commands;
   List<AttachmentPath>? attachmentPath;
-
+  String? forwardtocode;
+  String? forwardtoName;
   SingleClaimModel(
       {this.docEntry,
       this.docNum,
@@ -52,56 +75,47 @@ class SingleClaimModel {
       this.claimAmt,
       this.items,
       this.commands,
-      this.attachmentPath});
+      this.attachmentPath,
+      this.forwardtocode,
+      this.forwardtoName});
 
-  factory SingleClaimModel.fromJson(Map<String, dynamic> json) {
-    return SingleClaimModel(
-      docEntry: json['docEntry'] is int
-          ? json['docEntry']
-          : int.tryParse(json['docEntry'].toString()),
-      docNum: json['docNum'] is int
-          ? json['docNum']
-          : int.tryParse(json['docNum'].toString()),
-      sellType: json['sellType']?.toString(),
-      docDate: json['docDate']?.toString(),
-      cusName: json['cusName']?.toString(),
-      venName: json['venName']?.toString(),
-      poNum: json['poNum'] ?? "",
-      settelmentaggAmt: json['settelmentaggAmt'] is double
-          ? json['settelmentaggAmt']
-          : double.tryParse(json['settelmentaggAmt'].toString()),
-      etaDate: json['etaDate']?.toString(),
-      claimeInformation: json['claimeInformation']?.toString(),
-      cusClaim: json['cusClaim']?.toString(),
-      billofLoadingNum: json['billofLoadingNum']?.toString(),
-      approverId: json['approverId']?.toString(),
-      approverName: json['approverName']?.toString(),
-      status: json['status']?.toString(),
-      invNum: json['invNum']?.toString(),
-      desigNationofCountry: json['desigNationofCountry']?.toString(),
-      supplierContry: json['supplierContry']?.toString(),
-      claimIntimation: json['claimIntimation']?.toString(),
-      ageing: json['ageing'] ?? "",
-      recoveryFromSup: json['recoveryFromSup'] is int
-          ? json['recoveryFromSup']
-          : int.tryParse(json['recoveryFromSup'].toString()),
-      effectonGP: json['effectonGP'] is int
-          ? json['effectonGP']
-          : int.tryParse(json['effectonGP'].toString()),
-      claimAmt: json['claimAmt'] is double
-          ? json['claimAmt']
-          : double.tryParse(json['claimAmt'].toString()),
-      items: (json['items'] as List<dynamic>?)
-          ?.map((e) => Items.fromJson(e))
-          .toList(),
-      commands: (json['commands'] as List<dynamic>?)
-          ?.map((e) => Commands.fromJson(e))
-          .toList(),
-      attachmentPath: (json['attachmentPath'] as List<dynamic>?)
-          ?.map((e) => AttachmentPath.fromJson(e))
-          .toList(),
-    );
-  }
+  factory SingleClaimModel.fromJson(Map<String, dynamic> json) =>
+      SingleClaimModel(
+        docEntry: toInt(json['docEntry']),
+        docNum: toInt(json['docNum']),
+        sellType: toStringVal(json['sellType']),
+        docDate: toStringVal(json['docDate']),
+        cusName: toStringVal(json['cusName']),
+        venName: toStringVal(json['venName']),
+        poNum: toStringVal(json['poNum']),
+        settelmentaggAmt: toDouble(json['settelmentaggAmt']) ?? 0.0,
+        etaDate: toStringVal(json['etaDate']),
+        claimeInformation: toStringVal(json['claimeInformation']),
+        cusClaim: toStringVal(json['cusClaim']),
+        billofLoadingNum: toStringVal(json['billofLoadingNum']),
+        approverId: toStringVal(json['approverId']),
+        approverName: toStringVal(json['approverName']),
+        status: toStringVal(json['status']),
+        invNum: toStringVal(json['invNum']),
+        desigNationofCountry: toStringVal(json['desigNationofCountry']),
+        supplierContry: toStringVal(json['supplierContry']),
+        claimIntimation: toStringVal(json['claimIntimation']),
+        ageing: toStringVal(json['ageing']),
+        recoveryFromSup: toInt(json['recoveryFromSup']) ?? 0,
+        effectonGP: toInt(json['effectonGP']) ?? 0,
+        claimAmt: toDouble(json['claimAmt']) ?? 0.0,
+        items:
+            (json['items'] as List?)?.map((e) => Items.fromJson(e)).toList() ??
+                [],
+        commands: (json['commands'] as List?)
+                ?.map((e) => Commands.fromJson(e))
+                .toList() ??
+            [],
+        attachmentPath: (json['attachmentPath'] as List?)
+                ?.map((e) => AttachmentPath.fromJson(e))
+                .toList() ??
+            [],
+      );
 }
 
 class Items {
@@ -116,44 +130,31 @@ class Items {
   double? toatalAmt;
   double? shortageQty;
 
-  Items(
-      {this.lineId,
-      this.itemCode,
-      this.itemName,
-      this.containerNo,
-      this.invoiceQty,
-      this.provicionalClaimAmt,
-      this.quantityAmt,
-      this.qualityAmt,
-      this.toatalAmt,
-      this.shortageQty});
+  Items({
+    this.lineId,
+    this.itemCode,
+    this.itemName,
+    this.containerNo,
+    this.invoiceQty,
+    this.provicionalClaimAmt,
+    this.quantityAmt,
+    this.qualityAmt,
+    this.toatalAmt,
+    this.shortageQty,
+  });
 
-  factory Items.fromJson(Map<String, dynamic> json) {
-    return Items(
-      lineId: json['lineId'],
-      itemCode: json['itemCode'],
-      itemName: json['itemName'],
-      containerNo: json['containerNo'],
-      invoiceQty: json['invoiceQty'] is int
-          ? (json['invoiceQty'] as int).toDouble()
-          : json['invoiceQty'],
-      provicionalClaimAmt: json['provicionalClaimAmt'] is int
-          ? (json['provicionalClaimAmt'] as int).toDouble()
-          : json['provicionalClaimAmt'],
-      quantityAmt: json['quantityAmt'] is int
-          ? (json['quantityAmt'] as int).toDouble()
-          : json['quantityAmt'],
-      qualityAmt: json['qualityAmt'] is int
-          ? (json['qualityAmt'] as int).toDouble()
-          : json['qualityAmt'],
-      toatalAmt: json['toatalAmt'] is int
-          ? (json['toatalAmt'] as int).toDouble()
-          : json['toatalAmt'],
-      shortageQty: json['shortageQty'] is int
-          ? (json['shortageQty'] as int).toDouble()
-          : json['shortageQty'],
-    );
-  }
+  factory Items.fromJson(Map<String, dynamic> json) => Items(
+        lineId: toInt(json['lineId']),
+        itemCode: toStringVal(json['itemCode']),
+        itemName: toStringVal(json['itemName']),
+        containerNo: toStringVal(json['containerNo']),
+        invoiceQty: toDouble(json['invoiceQty']) ?? 0.0,
+        provicionalClaimAmt: toDouble(json['provicionalClaimAmt']) ?? 0.0,
+        quantityAmt: toDouble(json['quantityAmt']) ?? 0.0,
+        qualityAmt: toDouble(json['qualityAmt']) ?? 0.0,
+        toatalAmt: toDouble(json['toatalAmt']) ?? 0.0,
+        shortageQty: toDouble(json['shortageQty']) ?? 0.0,
+      );
 }
 
 class Commands {
@@ -162,54 +163,58 @@ class Commands {
   String? approverCode;
   String? approverName;
   String? approverStatus;
+  String? tempStatus;
   String? department;
   String? userId;
   String? appDate;
   String? remarks;
   String? appType;
+  String? toApproverCode;
+  String? fromApproverCode;
 
-  Commands(
-      {this.docEntry,
-      this.appPosition,
-      this.approverCode,
-      this.approverName,
-      this.approverStatus,
-      this.department,
-      this.userId,
-      this.appDate,
-      this.remarks,
-      this.appType});
+  Commands({
+    this.docEntry,
+    this.appPosition,
+    this.approverCode,
+    this.approverName,
+    this.approverStatus,
+    this.tempStatus,
+    this.department,
+    this.userId,
+    this.appDate,
+    this.remarks,
+    this.appType,
+    this.toApproverCode,
+    this.fromApproverCode,
+  });
 
-  factory Commands.fromJson(Map<String, dynamic> json) {
-    return Commands(
-        docEntry: json['docEntry'],
-        appPosition: json['appPosition'],
-        approverCode: json['approverCode'],
-        approverName: json['approverName'],
-        approverStatus: json['approverStatus'],
-        department: json['department'],
-        userId: json['userId'],
-        appDate: json['appDate'],
-        remarks: json['remarks'],
-        appType: json['appType']);
-  }
+  factory Commands.fromJson(Map<String, dynamic> json) => Commands(
+        docEntry: toInt(json['docEntry']),
+        appPosition: toStringVal(json['appPosition']),
+        approverCode: toStringVal(json['approverCode']),
+        approverName: toStringVal(json['approverName']),
+        approverStatus: toStringVal(json['approverStatus']),
+        tempStatus: toStringVal(json['approverStatus']), // <== initialize here
+        department: toStringVal(json['department']),
+        userId: toStringVal(json['userId']),
+        appDate: toStringVal(json['appDate']),
+        remarks: toStringVal(json['remarks']),
+        appType: toStringVal(json['appType']),
+        fromApproverCode: toStringVal(json['fromApproverCode']),
+        toApproverCode: toStringVal(json['toApproverCode']),
+      );
 }
 
 class AttachmentPath {
-  String filename;
-  String url;
+  String? filename;
+  String? url;
 
-  AttachmentPath({
-    required this.filename,
-    required this.url,
-  });
+  AttachmentPath({this.filename, this.url});
 
-  factory AttachmentPath.fromJson(Map<String, dynamic> json) {
-    return AttachmentPath(
-      filename: json['filename'],
-      url: json['url'],
-    );
-  }
+  factory AttachmentPath.fromJson(Map<String, dynamic> json) => AttachmentPath(
+        filename: toStringVal(json['filename']),
+        url: toStringVal(json['url']),
+      );
 
   Map<String, dynamic> toJson() => {
         'filename': filename,

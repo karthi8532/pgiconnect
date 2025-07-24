@@ -31,25 +31,34 @@ class User {
   String? employeName;
   String? userId;
   String? password;
+  int? empID;
   int? branch;
   String? branchName;
   String? dBName;
+  String? weigLocid;
+  String? weigLocname;
 
   User(
       {this.employeName,
       this.userId,
       this.password,
+      this.empID,
       this.branch,
       this.branchName,
-      this.dBName});
+      this.dBName,
+      this.weigLocid,
+      this.weigLocname});
 
   User.fromJson(Map<String, dynamic> json) {
     employeName = json['employeName'];
     userId = json['userId'];
     password = json['password'];
+    empID = json['empID'];
     branch = json['branch'];
     branchName = json['branchName'];
     dBName = json['DBName'];
+    weigLocid = json['WeigLocid'];
+    weigLocname = json['WeigLocValue'];
   }
 
   Map<String, dynamic> toJson() {
@@ -57,9 +66,12 @@ class User {
     data['employeName'] = employeName;
     data['userId'] = userId;
     data['password'] = password;
+    data['empID'] = empID;
     data['branch'] = branch;
     data['branchName'] = branchName;
     data['DBName'] = dBName;
+    data['WeigLocid'] = weigLocid;
+    data['WeigLocValue'] = weigLocname;
     return data;
   }
 }

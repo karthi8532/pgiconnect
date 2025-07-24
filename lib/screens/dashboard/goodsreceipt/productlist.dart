@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:pgiconnect/const/pref.dart';
 import 'package:pgiconnect/data/apiservice.dart';
 import 'package:pgiconnect/model/itemModel.dart';
+import 'package:pgiconnect/model/supervisorModel.dart';
 import 'package:pgiconnect/screens/dashboard/whsselection.dart';
 import 'package:pgiconnect/service/appcolor.dart';
 import 'package:pgiconnect/screens/login/utils/app_utils.dart';
@@ -29,10 +30,12 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
   TextEditingController netweightController = TextEditingController();
   TextEditingController noofpackcontroller = TextEditingController();
   TextEditingController packingqtycontroller = TextEditingController();
+
   final formKey = GlobalKey<FormState>();
 
   //List<PostItem> posteditem=[];
   final itemkey = GlobalKey<DropdownSearchState<ItemModel>>();
+
   final packingkey = GlobalKey<DropdownSearchState<Map<String, dynamic>>>();
   String getItemCode = "";
   String getItemName = "";
@@ -72,11 +75,34 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
   String packingListId = "JB";
   String packingListName = "Jumbo Bag";
 
+  String getSuperVisorCode = "";
+  String getSuperVisorName = "";
+
   Map<String, dynamic>? selectedpackingItem;
+
+  final FocusNode _emptyQtyFocus = FocusNode();
+  final FocusNode _grossWeightFocus = FocusNode();
+  final FocusNode _packingWeightFocus = FocusNode();
   @override
   void initState() {
     super.initState();
-    setState(() {});
+    _emptyQtyFocus.addListener(() {
+      if (!_emptyQtyFocus.hasFocus) {
+        _formatTo3Decimal(_emptyQtyController);
+      }
+    });
+
+    _grossWeightFocus.addListener(() {
+      if (!_grossWeightFocus.hasFocus) {
+        _formatTo3Decimal(_grossWeightController);
+      }
+    });
+
+    _packingWeightFocus.addListener(() {
+      if (!_packingWeightFocus.hasFocus) {
+        _formatTo3Decimal(packingqtycontroller);
+      }
+    });
   }
 
   @override
@@ -88,6 +114,11 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
     netweightController.dispose();
     noofpackcontroller.dispose();
     packingqtycontroller.dispose();
+    _emptyQtyFocus.dispose();
+    _grossWeightFocus.dispose();
+    _packingWeightFocus.dispose();
+    itemkey.currentState?.dispose();
+    packingkey.currentState?.dispose();
     super.dispose();
   }
 
@@ -239,10 +270,16 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                             Expanded(
                               flex: 5,
                               child: TextFormField(
+                                  focusNode: _emptyQtyFocus,
                                   controller: _emptyQtyController,
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
-                                          decimal: true, signed: false),
+                                          decimal: true),
+                                  autofocus: false,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                        RegExp(r'^\d*\.?\d{0,3}')),
+                                  ],
                                   validator: (value) =>
                                       value!.isNotEmpty ? null : "Empty Weight",
                                   decoration: const InputDecoration(
@@ -266,10 +303,16 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                             Expanded(
                               flex: 5,
                               child: TextFormField(
+                                  focusNode: _grossWeightFocus,
                                   controller: _grossWeightController,
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
-                                          decimal: true, signed: false),
+                                          decimal: true),
+                                  autofocus: false,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                        RegExp(r'^\d*\.?\d{0,3}')),
+                                  ],
                                   validator: (value) => value!.isNotEmpty
                                       ? null
                                       : "Gross Weight is Empty",
@@ -301,7 +344,12 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                 readOnly: true,
                                 keyboardType:
                                     const TextInputType.numberWithOptions(
-                                        decimal: true, signed: false),
+                                        decimal: true),
+                                autofocus: false,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d*\.?\d{0,3}')),
+                                ],
                                 controller: netweightController,
                                 decoration: const InputDecoration(
                                   fillColor: Colors.white,
@@ -323,9 +371,15 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                             Expanded(
                               flex: 5,
                               child: TextFormField(
+                                focusNode: _packingWeightFocus,
                                 keyboardType:
                                     const TextInputType.numberWithOptions(
-                                        decimal: true, signed: false),
+                                        decimal: true),
+                                autofocus: false,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d*\.?\d{0,3}')),
+                                ],
                                 controller: packingqtycontroller,
                                 decoration: const InputDecoration(
                                   contentPadding: EdgeInsets.fromLTRB(
@@ -356,7 +410,12 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                 readOnly: true,
                                 keyboardType:
                                     const TextInputType.numberWithOptions(
-                                        decimal: true, signed: false),
+                                        decimal: true),
+                                autofocus: false,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d*\.?\d{0,3}')),
+                                ],
                                 controller: finalDoqtyController,
                                 decoration: const InputDecoration(
                                   contentPadding: EdgeInsets.fromLTRB(
@@ -379,7 +438,12 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                               child: TextFormField(
                                 keyboardType:
                                     const TextInputType.numberWithOptions(
-                                        decimal: true, signed: false),
+                                        decimal: true),
+                                autofocus: false,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d*\.?\d{0,3}')),
+                                ],
                                 controller: noofpackcontroller,
                                 decoration: const InputDecoration(
                                   contentPadding: EdgeInsets.fromLTRB(
@@ -387,7 +451,7 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                   border: OutlineInputBorder(),
                                   focusedBorder: OutlineInputBorder(
                                     borderSide: BorderSide(
-                                        color: Appcolor.primary, width: 0.5),
+                                        color: Appcolor.black, width: 0.5),
                                   ),
                                   hintText: "No.Of.Packing",
                                   labelText: "No.Of.Packing",
@@ -402,6 +466,7 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                         Row(
                           children: [
                             Expanded(
+                              flex: 5,
                               child: DropdownSearch<Map<String, dynamic>>(
                                 key: packingkey,
                                 items: packinglist,
@@ -439,8 +504,14 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                 ),
                               ),
                             ),
+                            SizedBox(
+                              width: 5,
+                            ),
                           ],
-                        )
+                        ),
+                        SizedBox(
+                          height: 5,
+                        ),
                       ],
                     ),
                   ),
@@ -541,7 +612,7 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                     const SizedBox(width: 15),
                                     AppUtils.buildNormalText(
                                         text: widget.items[index].emptyQty!
-                                            .toStringAsFixed(2),
+                                            .toStringAsFixed(3),
                                         fontSize: 12,
                                         fontWeight: FontWeight.normal),
                                     const SizedBox(
@@ -567,7 +638,7 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                     const SizedBox(width: 15),
                                     AppUtils.buildNormalText(
                                         text: widget.items[index].emptyQty!
-                                            .toStringAsFixed(2),
+                                            .toStringAsFixed(3),
                                         fontSize: 12,
                                         fontWeight: FontWeight.normal),
                                     const SizedBox(
@@ -600,7 +671,7 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                     const SizedBox(width: 15),
                                     AppUtils.buildNormalText(
                                         text: widget.items[index].netWeight!
-                                            .toStringAsFixed(2),
+                                            .toStringAsFixed(3),
                                         fontSize: 12,
                                         fontWeight: FontWeight.normal),
                                     const SizedBox(
@@ -626,7 +697,7 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                     const SizedBox(width: 15),
                                     AppUtils.buildNormalText(
                                         text: widget.items[index].finalDOQty!
-                                            .toStringAsFixed(2),
+                                            .toStringAsFixed(3),
                                         fontSize: 12,
                                         fontWeight: FontWeight.normal),
                                     const SizedBox(
@@ -656,7 +727,7 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                     const SizedBox(width: 15),
                                     AppUtils.buildNormalText(
                                         text: widget.items[index].packingWeight!
-                                            .toStringAsFixed(2),
+                                            .toStringAsFixed(3),
                                         fontSize: 12,
                                         fontWeight: FontWeight.normal),
                                     const SizedBox(
@@ -682,7 +753,7 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                     const SizedBox(width: 15),
                                     AppUtils.buildNormalText(
                                         text: widget.items[index].noofpack!
-                                            .toStringAsFixed(2),
+                                            .toStringAsFixed(3),
                                         fontSize: 12,
                                         fontWeight: FontWeight.normal),
                                     const SizedBox(
@@ -693,25 +764,97 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                               ],
                             ),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
                               children: [
-                                const Icon(
-                                  CupertinoIcons.bag,
-                                  color: Colors.grey,
-                                  size: 20,
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    const Icon(
+                                      CupertinoIcons.bag,
+                                      color: Colors.grey,
+                                      size: 20,
+                                    ),
+                                    SizedBox(
+                                      width: 15,
+                                    ),
+                                    AppUtils.buildNormalText(
+                                        text:
+                                            widget.items[index].packingtypeName,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.normal),
+                                    const SizedBox(
+                                      width: 15,
+                                    ),
+                                  ],
                                 ),
-                                SizedBox(
-                                  width: 15,
-                                ),
-                                AppUtils.buildNormalText(
-                                    text: widget.items[index].packingtypeName,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.normal),
-                                const SizedBox(
-                                  width: 15,
-                                ),
+                                // Row(
+                                //   mainAxisAlignment: MainAxisAlignment.end,
+                                //   children: [
+                                //     const Icon(
+                                //       CupertinoIcons.bag,
+                                //       color: Colors.grey,
+                                //       size: 20,
+                                //     ),
+                                //     SizedBox(
+                                //       width: 15,
+                                //     ),
+                                //     AppUtils.buildNormalText(
+                                //         text:
+                                //             "Seal No  ${widget.items[index].sealNo.toString()}",
+                                //         fontSize: 12,
+                                //         fontWeight: FontWeight.normal),
+                                //     const SizedBox(
+                                //       width: 15,
+                                //     ),
+                                //   ],
+                                // ),
                               ],
                             ),
+                            // Row(
+                            //   children: [
+                            //     Row(
+                            //       mainAxisAlignment: MainAxisAlignment.start,
+                            //       children: [
+                            //         const Icon(
+                            //           CupertinoIcons.bag,
+                            //           color: Colors.grey,
+                            //           size: 20,
+                            //         ),
+                            //         SizedBox(
+                            //           width: 15,
+                            //         ),
+                            //         AppUtils.buildNormalText(
+                            //             text:
+                            //                 "Vehicle No ${widget.items[index].vechicleNo.toString()}",
+                            //             fontSize: 12,
+                            //             fontWeight: FontWeight.normal),
+                            //         const SizedBox(
+                            //           width: 15,
+                            //         ),
+                            //       ],
+                            //     ),
+                            //     Row(
+                            //       mainAxisAlignment: MainAxisAlignment.end,
+                            //       children: [
+                            //         const Icon(
+                            //           CupertinoIcons.bag,
+                            //           color: Colors.grey,
+                            //           size: 20,
+                            //         ),
+                            //         SizedBox(
+                            //           width: 15,
+                            //         ),
+                            //         AppUtils.buildNormalText(
+                            //             text:
+                            //                 "Weigh No ${widget.items[index].weighNo.toString()}",
+                            //             fontSize: 12,
+                            //             fontWeight: FontWeight.normal),
+                            //         const SizedBox(
+                            //           width: 15,
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   ],
+                            // ),
                           ])),
                 );
               },
@@ -767,6 +910,7 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
   additem() {
     widget.items.add(PostItem(
         getLineId,
+        getLineId,
         getItemCode,
         getItemName,
         getWhs,
@@ -792,7 +936,10 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
         packingListName,
         noofpackcontroller.text.isEmpty
             ? 0
-            : int.parse(noofpackcontroller.text.toString())));
+            : int.parse(noofpackcontroller.text.toString()),
+        "",
+        "",
+        ""));
     setState(() {
       _emptyQtyController.text = "";
       _grossWeightController.text = "";
@@ -802,6 +949,13 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
       packingqtycontroller.text = "";
       noofpackcontroller.text = "";
     });
+  }
+
+  void _formatTo3Decimal(TextEditingController controller) {
+    final value = double.tryParse(controller.text);
+    if (value != null) {
+      controller.text = value.toStringAsFixed(3);
+    }
   }
 
   Future<void> _whsselection(BuildContext context) async {
@@ -828,7 +982,7 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
         ? 0
         : double.parse(_grossWeightController.text);
     double firstnetweight = firstgrossweight - firstweight;
-    netweightController.text = firstnetweight.toStringAsFixed(2).toString();
+    netweightController.text = firstnetweight.toStringAsFixed(3).toString();
   }
 
   formula2() {
@@ -843,12 +997,13 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
         : double.parse(packingqtycontroller.text);
 
     double result = firstnetweight - firstpacking;
-    finalDoqtyController.text = result.toStringAsFixed(2).toString();
+    finalDoqtyController.text = result.toStringAsFixed(3).toString();
   }
 }
 
 class PostItem {
   int? lineId;
+  int? yardloadinglineId;
   String? itemcode;
   String? itemname;
   String? whs;
@@ -863,9 +1018,13 @@ class PostItem {
   String? packingtype;
   String? packingtypeName;
   int? noofpack;
+  String? sealNo;
+  String? vechicleNo;
+  String? weighNo;
 
   PostItem(
       this.lineId,
+      this.yardloadinglineId,
       this.itemcode,
       this.itemname,
       this.whs,
@@ -879,10 +1038,14 @@ class PostItem {
       this.packingWeight,
       this.packingtype,
       this.packingtypeName,
-      this.noofpack);
+      this.noofpack,
+      this.sealNo,
+      this.vechicleNo,
+      this.weighNo);
 
   PostItem.fromJson(Map<String, dynamic> json) {
-    lineId = json['yardloadinglineId'];
+    lineId = json['lineId'];
+    yardloadinglineId = json['yardloadinglineId'];
     itemcode = json['itemCode'];
     itemname = json['itemName'];
     whs = json['whs'];
@@ -897,11 +1060,15 @@ class PostItem {
     packingtype = json['packingType'];
     packingtypeName = json['packingtypeName'];
     noofpack = json['noofPack'];
+    sealNo = json['sealNo'];
+    vechicleNo = json['vechicleNo'];
+    weighNo = json['weighNo'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['yardloadinglineId'] = lineId;
+    data['lineId'] = lineId;
+    data['yardloadinglineId'] = yardloadinglineId;
     data['itemCode'] = itemcode;
     data['itemName'] = itemname;
     data['whs'] = whs;
@@ -916,6 +1083,9 @@ class PostItem {
     data['packingType'] = packingtype;
     data['packingtypeName'] = 'packingtypeName';
     data['noofPack'] = noofpack;
+    data['sealNo'] = sealNo;
+    data['vechicleNo'] = vechicleNo;
+    data['weighNo'] = weighNo;
     return data;
   }
 }

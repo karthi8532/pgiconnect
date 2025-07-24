@@ -6,34 +6,34 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pgiconnect/const/pref.dart';
 import 'package:pgiconnect/data/apiservice.dart';
-import 'package:pgiconnect/model/edityarnselection.dart';
-import 'package:pgiconnect/model/yarnListmodel.dart';
+import 'package:pgiconnect/model/yarnunloadmodel.dart';
 import 'package:pgiconnect/screens/brachselection/branchselection.dart';
 import 'package:pgiconnect/screens/dashboard/goodsreceipt/searchwidget.dart';
-import 'package:pgiconnect/screens/dashboard/goodsreceipt/yardloading.dart';
 import 'package:pgiconnect/screens/dbselectionpage/dbselection.dart';
 import 'package:pgiconnect/screens/login/login/loginpage.dart';
 import 'package:pgiconnect/screens/login/utils/app_utils.dart';
+import 'package:pgiconnect/screens/yardunloading/yardunloading.dart';
 import 'package:pgiconnect/service/appcolor.dart';
 import 'package:pgiconnect/widgets/customimagewithindicator.dart';
 
-class YarnSelectionPage extends StatefulWidget {
-  const YarnSelectionPage({super.key});
+class YardUnloadingSelectionPage extends StatefulWidget {
+  const YardUnloadingSelectionPage({super.key});
 
   @override
-  State<YarnSelectionPage> createState() => _YarnSelectionPageState();
+  State<YardUnloadingSelectionPage> createState() =>
+      _YardUnloadingSelectionPageState();
 }
 
-class _YarnSelectionPageState extends State<YarnSelectionPage> {
+class _YardUnloadingSelectionPageState
+    extends State<YardUnloadingSelectionPage> {
   TextEditingController searchController = TextEditingController();
   bool loading = false;
-  List<YarnListModel> yarnlodingList = [];
-  List<EditYarnListModel> yarneditList = [];
-
+  List<YardUnloadAllModel> yarnlodingList = [];
+  List<YardUnloadAllModel> yarncloselodingList = [];
   ApiService apiService = ApiService();
   int? selectedIndex = 0;
-  YarnListModel? selectedUser;
-  String selectedFilter = "Pending";
+  YardUnloadAllModel? selectedUser;
+  String selectedFilter = "Pending"; // Default filter
   String getDBName = "";
   String getcompanyname = "";
   String getbranchName = "";
@@ -43,10 +43,8 @@ class _YarnSelectionPageState extends State<YarnSelectionPage> {
   TextEditingController alterfromdatecontroller = TextEditingController();
   TextEditingController altertodatecontroller = TextEditingController();
   String pendingName = "Pending";
-  String inProgressName = "In Progress";
-  String closed = "Completed";
+  String closed = "Close";
 
-  int inProgressCount = 0;
   int pendingCount = 0;
   int completedCount = 0;
 
@@ -73,7 +71,6 @@ class _YarnSelectionPageState extends State<YarnSelectionPage> {
     altertodatecontroller.text = altertodate;
 
     getyarnlist();
-    getedityarnlist();
     getclosedyarnlist();
     super.initState();
   }
@@ -97,10 +94,23 @@ class _YarnSelectionPageState extends State<YarnSelectionPage> {
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Yard List'),
+              Text('Unloading List'),
             ],
           ),
           actions: [
+            IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    CupertinoPageRoute(
+                      builder: (context) => YardUnloadingPage(
+                        docEntry: 0,
+                        status: "Open",
+                      ),
+                    ),
+                  );
+                },
+                icon: Icon(CupertinoIcons.add)),
             IconButton(
                 onPressed: () {
                   showModalBottomSheet(
@@ -149,187 +159,213 @@ class _YarnSelectionPageState extends State<YarnSelectionPage> {
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Row(
               children: [
-                _buildFilterChip(pendingName, inProgressCount),
-                SizedBox(width: 8),
-                _buildFilterChip(inProgressName, pendingCount),
+                _buildFilterChip(pendingName, pendingCount),
                 SizedBox(width: 8),
                 _buildFilterChip(closed, completedCount),
               ],
             ),
           ),
         ),
-        SizedBox(
-          height: 10,
-        ),
-        Expanded(
-          child: _filterItems(searchController.text, selectedFilter).isNotEmpty
-              ? ListView.builder(
-                  padding: EdgeInsets.all(8),
-                  itemCount: _filterItems(searchController.text, selectedFilter)
-                      .length,
-                  shrinkWrap: true,
-                  physics: ScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    final product = _filterItems(
-                        searchController.text, selectedFilter)[index];
-
-                    return GestureDetector(
-                      onTap: () {
-                        var data = {};
-                        if (selectedFilter.toString() == "Pending") {
-                          data = {
-                            "logisticID": product.logisticID,
-                            "logisticRequestNo": product.logisticRequestNo,
-                            "noOfContainers": product.noOfContainers,
-                            "customerCode": product.customerCode,
-                            "customerName": product.customerName,
-                            "salesOrderNo": product.salesOrderNo,
-                            "soEntry": product.soEntry,
-                            "isEditable": false,
-                            "supervisorCode": product.supervisorCode,
-                            "supervisorName": product.supervisorName,
-                            "dateofLoading": product.dateofLoading,
-                            "actualQtyLoaded": product.actualQtyLoaded,
-                            "whoSealedtheContainer":
-                                product.whoSealedtheContainer,
-                            "clearancegivenby": product.clearancegivenby
-                          };
-                        } else {
-                          data = {
-                            "logisticID": product.logisticID,
-                            "logisticRequestNo": product.logisticRequestNo,
-                            "noOfContainers": product.noOfContainers,
-                            "customerCode": product.customerCode,
-                            "customerName": product.customerName,
-                            "salesOrderNo": product.salesOrderNo,
-                            "soEntry": product.soEntry,
-                            "isEditable":
-                                selectedFilter == "Pending" ? false : true,
-                            "yardLoadingId": product.yardLoadingId,
-                            "containerNo": product.containerNumber,
-                            "supervisorCode": product.supervisorCode,
-                            "supervisorName": product.supervisorName,
-                            "dateofLoading": product.dateofLoading,
-                            "actualQtyLoaded": product.actualQtyLoaded,
-                            "whoSealedtheContainer":
-                                product.whoSealedtheContainer,
-                            "clearancegivenby": product.clearancegivenby
-                          };
-                        }
-                        Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                              builder: (context) => YardLoading(
-                                  data: data, status: selectedFilter)),
-                        );
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                        child: Text(
-                                            product.customerName.toString(),
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold))),
-                                  ],
-                                ),
-                                SizedBox(height: 5),
-                                Row(
-                                  children: [
-                                    Expanded(child: Text('Logistic No')),
-                                    Container(
-                                      padding: EdgeInsets.only(
-                                        left: 3,
-                                        right: 3,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.red.shade50,
-                                        borderRadius: BorderRadius.circular(5),
-                                        border: Border.all(color: Colors.red),
-                                      ),
-                                      child: Text(
-                                          product.logisticRequestNo.toString(),
-                                          style: TextStyle(color: Colors.red)),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 5),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('Sales Order No',
-                                        style: TextStyle(color: Colors.black)),
-                                    Text('No Of Containers',
-                                        style: TextStyle(color: Colors.black)),
-                                  ],
-                                ),
-                                SizedBox(height: 6),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(product.salesOrderNo.toString(),
-                                        style: TextStyle(color: Colors.grey)),
-                                    Text(product.noOfContainers.toString(),
-                                        style: TextStyle(color: Colors.grey)),
-                                  ],
-                                ),
-                                SizedBox(height: 6),
-                                Text(product.itemDisc.toString(),
-                                    style: TextStyle(color: Colors.grey)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                )
-              : Center(
-                  child: Text('No Data!'),
-                ),
-        )
+        Expanded(child: listItem())
       ],
     );
   }
 
-  _filterItems(String query, selectedFilter) {
+  Widget listItem() {
+    final filteredList = _filterItems(searchController.text, selectedFilter);
+
+    if (filteredList.isEmpty) {
+      return const Center(child: Text('No Data!'));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(4),
+      itemCount: filteredList.length,
+      physics: const BouncingScrollPhysics(),
+      itemBuilder: (context, index) {
+        final product = filteredList[index];
+
+        return GestureDetector(
+          onTap: () {
+            // Uncomment and use if needed
+            /*
+          var data = {
+            "logisticID": product.logisticID,
+            "logisticRequestNo": product.logisticRequestNo,
+            "noOfContainers": product.noOfContainers,
+            "customerCode": product.customerCode,
+            "customerName": product.customerName,
+            "salesOrderNo": product.salesOrderNo,
+            "soEntry": product.soEntry,
+            "isEditable": selectedFilter != "Pending",
+            "yardLoadingId": product.yardLoadingId,
+            "containerNo": product.containerNumber,
+          };
+
+          Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => YardLoading(
+                data: data,
+                status: selectedFilter,
+              ),
+            ),
+          );
+          */
+            Navigator.push(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => YardUnloadingPage(
+                  docEntry: product.yardUnloading,
+                  status: selectedFilter == "Pending" ? "Open" : "Close",
+                ),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              elevation: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// Customer Name
+                    Text(
+                      product.customerName.toString() ?? '',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    /// Yard Unloading No
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Yard Unloading No',
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(2),
+                            border: Border.all(color: Colors.red),
+                          ),
+                          child: Text(
+                            product.yardUnloading.toString() ?? '',
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+
+                    /// Sales Order No & Containers
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text('Vechile No',
+                            style: TextStyle(color: Colors.black)),
+                        Text('WeighLocation',
+                            style: TextStyle(color: Colors.black)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          product.vechileNo.toString() ?? '',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        Text(
+                          product.weighLocation?.toString() ?? '',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text('Document Type',
+                            style: TextStyle(color: Colors.black)),
+                        Text('Inv Type', style: TextStyle(color: Colors.black)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          product.documentType.toString() ?? '',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        Text(
+                          product.invoiceType.toString() ?? '',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  List<YardUnloadAllModel> _filterItems(String query, String selectedFilter) {
     if (selectedFilter == "Pending") {
       return query.isEmpty
           ? yarnlodingList
           : yarnlodingList.where((item) {
-              String combinedText =
-                  "${item.logisticID} ${item.logisticRequestNo} ${item.noOfContainers}${item.customerCode}${item.customerName}${item.salesOrderNo},${item.soEntry}"
-                      .toString()
-                      .toLowerCase();
-              return combinedText.contains(query
-                  .toString()
-                  .toLowerCase()); // Check if query exists anywhere
-            }).toList();
-    } else {
-      return query.isEmpty
-          ? yarneditList
-          : yarneditList.where((item) {
-              String combinedText =
-                  "${item.logisticID} ${item.logisticRequestNo} ${item.noOfContainers}${item.customerCode}${item.customerName}${item.salesOrderNo},${item.soEntry}"
-                      .toString()
-                      .toLowerCase();
-              return combinedText.contains(query
-                  .toString()
-                  .toLowerCase()); // Check if query exists anywhere
+              final combinedText = [
+                item.yardUnloading.toString(),
+                item.docDate ?? '',
+                item.customerName ?? '',
+                item.vechileNo ?? '',
+                item.weighLocation ?? '',
+                item.documentType ?? '',
+                item.invoiceType ?? ''
+              ].join(' ').toLowerCase();
+
+              return combinedText.contains(query.toLowerCase());
             }).toList();
     }
+
+    // ✅ Fix: Changed "Pending" to "Closed" (or use correct value)
+    if (selectedFilter == "Close") {
+      return query.isEmpty
+          ? yarncloselodingList
+          : yarncloselodingList.where((item) {
+              final combinedText = [
+                item.yardUnloading.toString(),
+                item.docDate ?? '',
+                item.customerName ?? '',
+                item.vechileNo ?? '',
+                item.weighLocation ?? '',
+                item.documentType ?? '',
+                item.invoiceType ?? ''
+              ].join(' ').toLowerCase();
+
+              return combinedText.contains(query.toLowerCase());
+            }).toList();
+    }
+
+    return []; // ✅ fallback in case filter doesn't match
   }
 
   Widget bottomSheet() {
@@ -428,11 +464,13 @@ class _YarnSelectionPageState extends State<YarnSelectionPage> {
     });
 
     apiService
-        .getlogisticnumberList(
+        .getunloadingall(
             Prefs.getDBName('DBName'),
             Prefs.getBranchID('BranchID'),
             alterfromdatecontroller.text,
-            altertodatecontroller.text)
+            altertodatecontroller.text,
+            "yardunloading",
+            "Open")
         .then((response) async {
       setState(() {
         loading = false;
@@ -442,8 +480,10 @@ class _YarnSelectionPageState extends State<YarnSelectionPage> {
         final result = body['result'];
 
         if (result != null && result is List) {
+          yarnlodingList.clear();
           yarnlodingList = result
-              .map<YarnListModel>((item) => YarnListModel.fromJson(item))
+              .map<YardUnloadAllModel>(
+                  (item) => YardUnloadAllModel.fromJson(item))
               .toList();
           pendingCount = yarnlodingList.length;
         } else {
@@ -453,6 +493,11 @@ class _YarnSelectionPageState extends State<YarnSelectionPage> {
       } else if (response.statusCode == 401) {
         yarnlodingList.clear();
         handleTokenExpired();
+      } else if (response.statusCode == 500) {
+        yarnlodingList.clear();
+        pendingCount = 0;
+        AppUtils.showSingleDialogPopup(
+            context, "No Data Found", "Ok", onexitpopup, null);
       } else {
         yarnlodingList.clear();
         AppUtils.showSingleDialogPopup(
@@ -524,63 +569,7 @@ class _YarnSelectionPageState extends State<YarnSelectionPage> {
         todatecontroller.text = dateFormate;
         altertodatecontroller.text = formattedDate;
       });
-      // if (alterfromdatecontroller.text.isNotEmpty &&
-      //     altertodatecontroller.text.isNotEmpty) {
-      //   getfilterlist();
-      // }
     }
-  }
-
-  void getedityarnlist() async {
-    setState(() {
-      loading = true;
-    });
-
-    apiService
-        .geteditlogisticnumberList(
-            Prefs.getDBName('DBName'),
-            Prefs.getBranchID('BranchID'),
-            alterfromdatecontroller.text,
-            altertodatecontroller.text)
-        .then((response) async {
-      setState(() {
-        loading = false;
-      });
-      if (response.statusCode == 200 || response.statusCode < 300) {
-        final body = jsonDecode(response.body);
-        final result = body['result'];
-
-        if (result != null && result is List) {
-          yarneditList.clear();
-          yarneditList = jsonDecode(response.body)['result']
-              .map<EditYarnListModel>(
-                  (item) => EditYarnListModel.fromJson(item))
-              .toList();
-          inProgressCount = yarneditList.length;
-        } else {
-          yarneditList.clear();
-          inProgressCount = 0;
-        }
-      } else if (response.statusCode == 401) {
-        setState(() {
-          loading = false;
-        });
-        yarneditList.clear();
-        AppUtils.showSingleDialogPopup(
-            context,
-            jsonDecode(response.body)['message'].toString(),
-            "Ok",
-            handleTokenExpired,
-            null);
-      }
-    }).catchError((e) {
-      setState(() {
-        loading = false;
-      });
-      yarneditList.clear();
-      AppUtils.showSingleDialogPopup(
-          context, e.toString(), "Ok", onexitpopup, null);
-    });
   }
 
   void getclosedyarnlist() async {
@@ -589,11 +578,14 @@ class _YarnSelectionPageState extends State<YarnSelectionPage> {
     });
 
     apiService
-        .getclosedlogisticnumberList(
-            Prefs.getDBName('DBName'),
-            Prefs.getBranchID('BranchID'),
-            alterfromdatecontroller.text,
-            altertodatecontroller.text)
+        .getunloadingall(
+      Prefs.getDBName('DBName'),
+      Prefs.getBranchID('BranchID'),
+      alterfromdatecontroller.text,
+      altertodatecontroller.text,
+      "yardunloading",
+      "Close",
+    )
         .then((response) async {
       setState(() {
         loading = false;
@@ -603,33 +595,38 @@ class _YarnSelectionPageState extends State<YarnSelectionPage> {
         final result = body['result'];
 
         if (result != null && result is List) {
-          yarneditList.clear();
-          yarneditList = jsonDecode(response.body)['result']
-              .map<EditYarnListModel>(
-                  (item) => EditYarnListModel.fromJson(item))
+          yarncloselodingList.clear();
+          yarncloselodingList = result
+              .map<YardUnloadAllModel>(
+                  (item) => YardUnloadAllModel.fromJson(item))
               .toList();
-          completedCount = yarneditList.length;
+          completedCount = yarncloselodingList.length;
         } else {
-          yarneditList.clear();
+          yarncloselodingList.clear();
           completedCount = 0;
         }
       } else if (response.statusCode == 401) {
         setState(() {
           loading = false;
         });
-        yarneditList.clear();
+        yarncloselodingList.clear();
         AppUtils.showSingleDialogPopup(
             context,
             jsonDecode(response.body)['message'].toString(),
             "Ok",
             handleTokenExpired,
             null);
+      } else if (response.statusCode == 500) {
+        yarnlodingList.clear();
+        pendingCount = 0;
+        AppUtils.showSingleDialogPopup(
+            context, "No Data Found", "Ok", onexitpopup, null);
       }
     }).catchError((e) {
       setState(() {
         loading = false;
       });
-      yarneditList.clear();
+      yarncloselodingList.clear();
       AppUtils.showSingleDialogPopup(
           context, e.toString(), "Ok", onexitpopup, null);
     });
@@ -681,8 +678,6 @@ class _YarnSelectionPageState extends State<YarnSelectionPage> {
   Widget _buildFilterChip(String label, int count) {
     if (label == "Pending") {
       count = pendingCount; // Replace with your actual pending count
-    } else if (label == "In Progress") {
-      count = inProgressCount; // Replace with your actual in-progress count
     } else {
       count = completedCount; // Replace with your actual closed count
     }
@@ -691,11 +686,7 @@ class _YarnSelectionPageState extends State<YarnSelectionPage> {
       onTap: () {
         setState(() {
           selectedFilter = label;
-          label.toString() == "Pending"
-              ? getyarnlist()
-              : label.toString() == "In Progress"
-                  ? getedityarnlist()
-                  : getclosedyarnlist();
+          label.toString() == "Pending" ? getyarnlist() : getclosedyarnlist();
           searchController.text = "";
           searchController.clear();
         });

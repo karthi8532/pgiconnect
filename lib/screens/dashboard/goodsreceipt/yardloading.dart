@@ -2,12 +2,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:pgiconnect/const/pref.dart';
 import 'package:pgiconnect/data/apiservice.dart';
 import 'package:pgiconnect/model/editmodelyarnlist.dart';
+import 'package:pgiconnect/model/supervisorModel.dart';
 import 'package:pgiconnect/screens/login/login/loginpage.dart';
 import 'package:pgiconnect/screens/yarnselectionlist.dart';
 import 'package:pgiconnect/service/appcolor.dart';
@@ -45,18 +49,58 @@ class _YardLoadingState extends State<YardLoading> {
   int getbranchId = 0;
   String getLogisticNo = "";
   String getLogisticID = "";
+
+  final Set<File> _selectedImages = {};
+  final int maxImages = 20;
+
   final ImagePicker _picker = ImagePicker();
   bool loading = false;
   ApiService apiService = ApiService();
 
   TextEditingController containernumbercontroller = TextEditingController();
+  TextEditingController dateofLoadingContainer = TextEditingController();
+  TextEditingController actualQtyLoadedContainer = TextEditingController();
+  TextEditingController sealedByNameController = TextEditingController();
+  TextEditingController clearanceByController = TextEditingController();
+  TextEditingController weightnocontroller = TextEditingController();
+  TextEditingController vehicleNoController = TextEditingController();
+  TextEditingController sealNocontroller = TextEditingController();
   List<YarnEditListModel> editmodel = [];
+  final superKey = GlobalKey<DropdownSearchState<SuperVisorModel>>();
 
   final List<File> _images = [];
   final List<File> _editimages = [];
   final List<String> _removedURL = [];
-
+  SuperVisorModel? selectedSupervisor;
+  String superVisorCode = "";
+  String superVisorName = "";
   bool value1 = false;
+  List<Map<String, dynamic>> packinglist = [
+    {
+      'id': 'JB',
+      'name': 'Jumbo Bag',
+    },
+    {
+      'id': 'PL',
+      'name': 'Pallete',
+    },
+    {
+      'id': 'BR',
+      'name': 'Briquestes',
+    },
+    {
+      'id': 'BU',
+      'name': 'Bundles',
+    },
+    {
+      'id': 'LO',
+      'name': 'Loose',
+    },
+    {
+      'id': 'FW',
+      'name': 'Fumigated Wooden Pallets',
+    }
+  ];
   @override
   void initState() {
     if (widget.status == "Completed") {
@@ -77,7 +121,31 @@ class _YardLoadingState extends State<YardLoading> {
     widget.data['isEditable'] == true ? getyarneditloadinglist() : "";
 
     if (widget.data['isEditable'] == true) {
-      containernumbercontroller.text = widget.data['containerNo'];
+      // containernumbercontroller.text = widget.data['containerNo'];
+      // dateofLoadingContainer.text = widget.data['dateofLoading'] ?? "";
+
+      // actualQtyLoadedContainer.text =
+      //     (widget.data['actualQtyLoaded'] as num).toStringAsFixed(3);
+
+      // sealedByNameController.text = widget.data['whoSealedtheContainer'];
+      // clearanceByController.text = widget.data['clearancegivenby'];
+      // superVisorCode = widget.data['supervisorCode'];
+      // superVisorName = widget.data['supervisorName'];
+      containernumbercontroller.text = widget.data['containerNo'] ?? '';
+
+      dateofLoadingContainer.text = widget.data['dateofLoading'] ?? '';
+
+      actualQtyLoadedContainer.text =
+          (widget.data['actualQtyLoaded'] ?? 0).toStringAsFixed(3);
+
+      sealedByNameController.text = widget.data['whoSealedtheContainer'] ?? '';
+
+      clearanceByController.text = widget.data['clearancegivenby'] ?? '';
+
+      superVisorCode = (widget.data['supervisorCode'] ?? '').toString();
+      superVisorName = (widget.data['supervisorName'] ?? '').toString();
+      selectedSupervisor =
+          SuperVisorModel(id: superVisorCode, value: superVisorName);
     }
     super.initState();
   }
@@ -85,6 +153,10 @@ class _YardLoadingState extends State<YardLoading> {
   @override
   void dispose() {
     containernumbercontroller.dispose();
+    dateofLoadingContainer.dispose();
+    actualQtyLoadedContainer.dispose();
+    sealedByNameController.dispose();
+    clearanceByController.dispose();
     super.dispose();
   }
 
@@ -195,19 +267,56 @@ class _YardLoadingState extends State<YardLoading> {
                                 "Ok",
                                 onexitpopup,
                                 null);
-                          } else if (items.isEmpty) {
-                            AppUtils.showSingleDialogPopup(
-                                context,
-                                "Please make you item is empty",
-                                "Ok",
-                                onexitpopup,
-                                null);
-                          } else {
+                          }
+                          // else if (superVisorCode.isEmpty) {
+                          //   AppUtils.showSingleDialogPopup(
+                          //       context,
+                          //       "Please Choose Supervisor",
+                          //       "Ok",
+                          //       onexitpopup,
+                          //       null);
+                          // } else if (dateofLoadingContainer.text.isEmpty) {
+                          //   AppUtils.showSingleDialogPopup(
+                          //       context,
+                          //       "Please Choose Date of Loading",
+                          //       "Ok",
+                          //       onexitpopup,
+                          //       null);
+                          // }
+                          //else if (actualQtyLoadedContainer.text.isEmpty) {
+                          //   AppUtils.showSingleDialogPopup(
+                          //       context,
+                          //       "Please Enter Actual Qty",
+                          //       "Ok",
+                          //       onexitpopup,
+                          //       null);
+                          // } else if (sealedByNameController.text.isEmpty) {
+                          // AppUtils.showSingleDialogPopup(
+                          //     context,
+                          //     "Please Enter Sealed by Name",
+                          //     "Ok",
+                          //     onexitpopup,
+                          //     null);
+                          //}
+                          // else if (clearanceByController.text.isEmpty) {
+                          //   AppUtils.showSingleDialogPopup(
+                          //       context,
+                          //       "Please Enter Clearance by",
+                          //       "Ok",
+                          //       onexitpopup,
+                          //       null);
+                          // }
+
+                          else {
+                            // widget.data['isEditable'] == false
+                            //     ? postItem()
+                            //     : widget.status == "Completed"
+                            //         ? ""
+                            //         : updateYarnApi();
+
                             widget.data['isEditable'] == false
                                 ? postItem()
-                                : widget.status == "Completed"
-                                    ? ""
-                                    : updateYarnApi();
+                                : updateYarnApi();
                           }
                         },
                         child: Row(
@@ -234,17 +343,130 @@ class _YardLoadingState extends State<YardLoading> {
     );
   }
 
+  // Widget _buildUploadSection() {
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         const Text(
+  //           "Attachment",
+  //           style: TextStyle(fontWeight: FontWeight.normal, fontSize: 14),
+  //         ),
+  //         const SizedBox(height: 10),
+  //         Wrap(
+  //           spacing: 10,
+  //           runSpacing: 10,
+  //           children: [
+  //             ..._images.map((file) {
+  //               final isSelected = _selectedImages.contains(file);
+  //               return Stack(
+  //                 children: [
+  //                   Container(
+  //                     width: 100,
+  //                     height: 100,
+  //                     decoration: BoxDecoration(
+  //                       border: Border.all(
+  //                         color: isSelected ? Colors.blue : Colors.grey,
+  //                         width: isSelected ? 2 : 1,
+  //                       ),
+  //                       borderRadius: BorderRadius.circular(8),
+  //                       image: DecorationImage(
+  //                         image: FileImage(file),
+  //                         fit: BoxFit.cover,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                   Positioned(
+  //                     top: -8,
+  //                     left: -8,
+  //                     child: Checkbox(
+  //                       value: isSelected,
+  //                       onChanged: (value) {
+  //                         setState(() {
+  //                           if (value == true) {
+  //                             print(file.path);
+  //                             _selectedImages.add(file);
+  //                           } else {
+  //                             _selectedImages.remove(file);
+  //                           }
+  //                         });
+  //                       },
+  //                       side: const BorderSide(width: 1, color: Colors.green),
+  //                       shape: RoundedRectangleBorder(
+  //                           borderRadius: BorderRadius.circular(4)),
+  //                       fillColor: WidgetStateProperty.all(Colors.white),
+  //                       checkColor: Colors.blue,
+  //                     ),
+  //                   ),
+  //                   Positioned(
+  //                     top: -8,
+  //                     right: -8,
+  //                     child: IconButton(
+  //                       icon: const Icon(Icons.cancel,
+  //                           color: Colors.red, size: 20),
+  //                       onPressed: () {
+  //                         setState(() {
+  //                           _selectedImages.remove(file);
+  //                           _images.remove(file);
+  //                         });
+  //                       },
+  //                     ),
+  //                   ),
+  //                 ],
+  //               );
+  //             }),
+  //             if (_images.length < maxImages)
+  //               GestureDetector(
+  //                 onTap: () {
+  //                   AppUtils.showBottomCupertinoDialog(
+  //                     context,
+  //                     title: "Attach Image",
+  //                     btn1function: () {
+  //                       AppUtils.pop(context);
+  //                       _cameraImage();
+  //                     },
+  //                     btn2function: () {
+  //                       AppUtils.pop(context);
+  //                       _pickImage();
+  //                     },
+  //                   );
+  //                 },
+  //                 child: Container(
+  //                   width: 100,
+  //                   height: 100,
+  //                   decoration: BoxDecoration(
+  //                     border: Border.all(color: Colors.grey),
+  //                     borderRadius: BorderRadius.circular(8),
+  //                     color: Colors.white,
+  //                   ),
+  //                   child: const Column(
+  //                     mainAxisAlignment: MainAxisAlignment.center,
+  //                     children: [
+  //                       Icon(Icons.add, size: 30, color: Colors.black54),
+  //                       SizedBox(height: 5),
+  //                       Text("Upload", style: TextStyle(color: Colors.black54)),
+  //                     ],
+  //                   ),
+  //                 ),
+  //               ),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
   Widget _buildUploadSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             "Attachment",
             style: TextStyle(fontWeight: FontWeight.normal, fontSize: 14),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Wrap(
             spacing: 10,
             runSpacing: 10,
@@ -259,7 +481,7 @@ class _YardLoadingState extends State<YardLoading> {
                         border: Border.all(color: Colors.grey),
                         borderRadius: BorderRadius.circular(8),
                         image: DecorationImage(
-                          image: FileImage(File(file.path)),
+                          image: FileImage(file),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -268,28 +490,34 @@ class _YardLoadingState extends State<YardLoading> {
                       top: -8,
                       right: -8,
                       child: IconButton(
-                        icon: Icon(Icons.cancel, color: Colors.red, size: 20),
+                        icon: const Icon(Icons.cancel,
+                            color: Colors.red, size: 20),
                         onPressed: () {
                           setState(() {
+                            _selectedImages.remove(file);
                             _images.remove(file);
                           });
                         },
                       ),
-                    )
+                    ),
                   ],
                 );
               }),
-              if (_images.length < 5)
+              if (_images.length < maxImages)
                 GestureDetector(
                   onTap: () {
-                    AppUtils.showBottomCupertinoDialog(context,
-                        title: "Attach Image", btn1function: () {
-                      AppUtils.pop(context);
-                      _cameraImage();
-                    }, btn2function: () {
-                      AppUtils.pop(context);
-                      _pickImage();
-                    });
+                    AppUtils.showBottomCupertinoDialog(
+                      context,
+                      title: "Attach Image",
+                      btn1function: () {
+                        AppUtils.pop(context);
+                        _cameraImage();
+                      },
+                      btn2function: () {
+                        AppUtils.pop(context);
+                        _pickImage();
+                      },
+                    );
                   },
                   child: Container(
                     width: 100,
@@ -299,9 +527,9 @@ class _YardLoadingState extends State<YardLoading> {
                       borderRadius: BorderRadius.circular(8),
                       color: Colors.white,
                     ),
-                    child: Column(
+                    child: const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Icon(Icons.add, size: 30, color: Colors.black54),
                         SizedBox(height: 5),
                         Text("Upload", style: TextStyle(color: Colors.black54)),
@@ -350,6 +578,7 @@ class _YardLoadingState extends State<YardLoading> {
                         icon: Icon(Icons.cancel, color: Colors.red, size: 20),
                         onPressed: () {
                           setState(() {
+                            _selectedImages.remove(file);
                             _removedURL.add(file.path);
                             _editimages.remove(file);
                           });
@@ -367,36 +596,32 @@ class _YardLoadingState extends State<YardLoading> {
   }
 
   Future<void> _cameraImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
-    if (image != null && _images.length < 5) {
-      setState(() {
-        _images.add(File(image.path));
-      });
-    } else if (_images.length >= 5) {
+    if (_images.length >= maxImages) {
       AppUtils.showSingleDialogPopup(
         context,
-        "Max. 5 attachments only allowed",
+        "Maximum $maxImages attachments allowed",
         "Ok",
         () => Navigator.pop(context),
         null,
       );
+      return;
+    }
+
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    if (image != null) {
+      setState(() {
+        _images.add(File(image.path));
+      });
     }
   }
 
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null && _images.length < 5) {
+    final List<XFile> selectedImages = await _picker.pickMultiImage();
+
+    if (selectedImages.isNotEmpty) {
       setState(() {
-        _images.add(File(image.path));
+        _images.addAll(selectedImages.map((xfile) => File(xfile.path)));
       });
-    } else if (_images.length >= 5) {
-      AppUtils.showSingleDialogPopup(
-        context,
-        "Max. 5 attachments only allowed",
-        "Ok",
-        () => Navigator.pop(context),
-        null,
-      );
     }
   }
 
@@ -442,10 +667,119 @@ class _YardLoadingState extends State<YardLoading> {
             ),
             Expanded(
               flex: 5,
-              child: _textFornField("Container No", "", Icons.add_box_sharp),
+              child: _textFornField("Container No", "", Icons.add_box_sharp,
+                  containernumbercontroller),
             ),
           ],
         ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              flex: 5,
+              child: DropdownSearch<SuperVisorModel>(
+                key: superKey,
+                selectedItem: selectedSupervisor,
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                  interceptCallBacks: true, //important line
+                  itemBuilder: (ctx, item, isSelected) {
+                    return ListTile(
+                        selected: isSelected,
+                        title: Text(
+                          item.value.toString(),
+                          style: TextStyle(
+                            color: Colors.black,
+                          ),
+                        ),
+                        onTap: () {
+                          superKey.currentState?.popupValidate([item]);
+                          superVisorCode = item.id.toString();
+                          superVisorName = item.value.toString();
+
+                          setState(() {});
+                        });
+                  },
+                ),
+                asyncItems: (String filter) => ApiService.getsupervisorlists(
+                  Prefs.getDBName('DBName'),
+                  Prefs.getBranchID('BranchID'),
+                  filter: filter,
+                ),
+                itemAsString: (SuperVisorModel item) => item.value.toString(),
+                dropdownDecoratorProps: DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+                    hintText: 'Supervisor * ',
+                    label: Text("Supervisor"),
+                    filled: true,
+                    fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(1),
+                      borderSide:
+                          const BorderSide(color: Colors.grey, width: 1),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(1),
+                      borderSide:
+                          const BorderSide(color: Colors.grey, width: 1),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 5,
+              child: _textFormFieldDate("Date Of Loading", "",
+                  Icons.add_box_sharp, dateofLoadingContainer),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Expanded(
+            //   flex: 5,
+            //   child: _textFormFieldNumeric("Actual Qty Loaded", "",
+            //       CupertinoIcons.cube_box, actualQtyLoadedContainer),
+            // ),
+            Expanded(
+              flex: 5,
+              child: _textFornField("Who is Sealed Container", "",
+                  Icons.add_box_sharp, sealedByNameController),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              flex: 5,
+              child: _textFornField("Clearance By", "", Icons.add_box_sharp,
+                  clearanceByController),
+            ),
+            Expanded(
+              flex: 5,
+              child: _textFornField(
+                  "SealNo", "", Icons.add_box_sharp, sealNocontroller),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              flex: 5,
+              child: _textFornField(
+                  "Weigh No", "", Icons.add_box_sharp, weightnocontroller),
+            ),
+            Expanded(
+              flex: 5,
+              child: _textFornField(
+                  "Vehicle No", "", Icons.add_box_sharp, vehicleNoController),
+            ),
+          ],
+        )
       ],
     );
   }
@@ -484,11 +818,12 @@ class _YardLoadingState extends State<YardLoading> {
         ));
   }
 
-  Widget _textFornField(String label, String hint, IconData icon) {
+  Widget _textFornField(
+      String label, String hint, IconData icon, controllerName) {
     return Container(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(4.0),
         child: TextFormField(
-            controller: containernumbercontroller,
+            controller: controllerName,
             keyboardType: TextInputType.multiline,
             autofocus: false,
             decoration: InputDecoration(
@@ -498,6 +833,60 @@ class _YardLoadingState extends State<YardLoading> {
                 fillColor: Colors.white,
                 border: OutlineInputBorder(),
                 isDense: true)));
+  }
+
+  Widget _textFormFieldDate(
+      String label, String hint, IconData icon, controllerName) {
+    return Container(
+        padding: const EdgeInsets.all(4.0),
+        child: TextFormField(
+            controller: controllerName,
+            keyboardType: TextInputType.multiline,
+            autofocus: false,
+            readOnly: true,
+            onTap: () async {
+              DateTime tomorrow = DateTime.now().add(Duration(days: 0));
+              DateTime? date = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(2023),
+                lastDate: DateTime(2100),
+              );
+              if (date != null) {
+                controllerName.text = DateFormat('dd/MM/yyyy').format(date);
+              }
+            },
+            decoration: InputDecoration(
+                labelText: label,
+                hintText: hint,
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(),
+                isDense: true)));
+  }
+
+  Widget _textFormFieldNumeric(
+      String label, String hint, IconData icon, controllerName) {
+    return Container(
+      padding: const EdgeInsets.all(4.0),
+      child: TextFormField(
+        controller: controllerName,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        autofocus: false,
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,3}')),
+        ],
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          filled: true,
+          fillColor: Colors.white,
+          border: const OutlineInputBorder(),
+          isDense: true,
+          prefixIcon: Icon(icon),
+        ),
+      ),
+    );
   }
 
   Widget containernumberupdate() {
@@ -613,7 +1002,7 @@ class _YardLoadingState extends State<YardLoading> {
     );
   }
 
-  Widget _buildProductItem(items) {
+  Widget _buildProductItem(List<PostItem> items) {
     return ListView.separated(
       itemCount: items.length,
       shrinkWrap: true,
@@ -636,7 +1025,7 @@ class _YardLoadingState extends State<YardLoading> {
                       SizedBox(
                         width: 5,
                       ),
-                      Text(items[index].itemname,
+                      Text(items[index].itemname.toString(),
                           style: TextStyle(
                               fontSize: 12, fontWeight: FontWeight.bold)),
                     ],
@@ -654,7 +1043,7 @@ class _YardLoadingState extends State<YardLoading> {
                       Text(
                         items[index].emptyQty.toString().isEmpty
                             ? "Empty Qty : 0"
-                            : "Empty Qty  : ${items[index].emptyQty.toStringAsFixed(2)}",
+                            : "Empty Qty  : ${items[index].emptyQty!.toStringAsFixed(2)}",
                         style: TextStyle(fontSize: 12),
                       ),
                     ],
@@ -680,7 +1069,7 @@ class _YardLoadingState extends State<YardLoading> {
                       Text(
                         items[index].grossWeight.toString().isEmpty
                             ? "Gross wght : 0"
-                            : "Gross wght: ${items[index].grossWeight.toStringAsFixed(2)}",
+                            : "Gross wght: ${items[index].grossWeight!.toStringAsFixed(2)}",
                         style: TextStyle(fontSize: 12),
                       ),
                     ],
@@ -698,7 +1087,7 @@ class _YardLoadingState extends State<YardLoading> {
                       Text(
                         items[index].finalDOQty.toString().isEmpty
                             ? "Final DoQty :0"
-                            : "Final DoQty: ${items[index].finalDOQty.toStringAsFixed(2)}",
+                            : "Final DoQty: ${items[index].finalDOQty!.toStringAsFixed(2)}",
                         style: TextStyle(fontSize: 12),
                       ),
                     ],
@@ -724,7 +1113,7 @@ class _YardLoadingState extends State<YardLoading> {
                       Text(
                         items[index].netWeight.toString() == ""
                             ? "Net wght:0"
-                            : "Net wght: ${items[index].netWeight.toStringAsFixed(2)}",
+                            : "Net wght: ${items[index].netWeight!.toStringAsFixed(2)}",
                         style: TextStyle(fontSize: 12),
                       ),
                     ],
@@ -742,7 +1131,7 @@ class _YardLoadingState extends State<YardLoading> {
                       Text(
                         items[index].packingWeight.toString().isEmpty
                             ? "Pack wght : 0"
-                            : "Pack wght: ${items[index].packingWeight.toStringAsFixed(2)}",
+                            : "Pack wght: ${items[index].packingWeight!.toStringAsFixed(2)}",
                         style: TextStyle(fontSize: 12),
                       ),
                     ],
@@ -769,7 +1158,7 @@ class _YardLoadingState extends State<YardLoading> {
                         items[index].noofpack.toString().isEmpty ||
                                 items[index].noofpack == null
                             ? "No of Pack: 0"
-                            : "No of Pack: ${items[index].noofpack.toStringAsFixed(2)}",
+                            : "No of Pack: ${items[index].noofpack!.toStringAsFixed(2)}",
                         style: TextStyle(fontSize: 12),
                       ),
                     ],
@@ -785,13 +1174,80 @@ class _YardLoadingState extends State<YardLoading> {
                         width: 5,
                       ),
                       Text(
-                        items[index].packingtypeName.toString(),
+                        items[index].packingtypeName.toString().isEmpty ||
+                                items[index].packingtypeName == null
+                            ? "Packing Type : "
+                            : "Packing Type : ${items[index].packingtypeName.toString()}",
                         style: TextStyle(fontSize: 12),
                       ),
                     ],
                   ),
                 ],
               ),
+              SizedBox(
+                height: 5,
+              ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //   children: [
+              //     Row(
+              //       children: [
+              //         Icon(
+              //           CupertinoIcons.cube_box,
+              //           color: Colors.grey,
+              //           size: 20,
+              //         ),
+              //         SizedBox(
+              //           width: 5,
+              //         ),
+              //         Text(
+              //           "Seal No:${items[index].sealNo}",
+              //           style: TextStyle(fontSize: 12),
+              //         ),
+              //       ],
+              //     ),
+              //     Row(
+              //       children: [
+              //         Icon(
+              //           CupertinoIcons.bag,
+              //           color: Colors.grey,
+              //           size: 20,
+              //         ),
+              //         SizedBox(
+              //           width: 5,
+              //         ),
+              //         Text(
+              //           "Vehicle No : ${items[index].vechicleNo.toString()}",
+              //           style: TextStyle(fontSize: 12),
+              //         ),
+              //       ],
+              //     ),
+              //   ],
+              // ),
+              SizedBox(
+                height: 5,
+              ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //   children: [
+              //     Row(
+              //       children: [
+              //         Icon(
+              //           CupertinoIcons.cube_box,
+              //           color: Colors.grey,
+              //           size: 20,
+              //         ),
+              //         SizedBox(
+              //           width: 5,
+              //         ),
+              //         Text(
+              //           "Weigh No : ${items[index].weighNo}",
+              //           style: TextStyle(fontSize: 12),
+              //         ),
+              //       ],
+              //     ),
+              //   ],
+              // ),
             ],
           ),
         );
@@ -819,194 +1275,285 @@ class _YardLoadingState extends State<YardLoading> {
     }
   }
 
-  void postItem() {
+  void postItem() async {
+    final List<File> selectedImageList =
+        _selectedImages.toList(); // Convert Set to List
+
     setState(() {
       loading = true;
     });
-    final map = <String, dynamic>{};
-    map['docEntry'] = getLogisticID;
-    map['docNum'] = getLogisticNo;
-    map['userId'] = Prefs.getEmpID('Id');
-    map['sONum'] = widget.data['salesOrderNo'];
-    map['sOEntry'] = widget.data['soEntry'];
-    map['cardCode'] = widget.data['customerCode'];
-    map['cardName'] = widget.data['customerName'];
-    map['containerNo'] = containernumbercontroller.text;
-    map['docStatus'] = value1 == true ? "closed" : "opened";
+
+    final map = {
+      'docEntry': getLogisticID,
+      'docNum': getLogisticNo,
+      'userId': Prefs.getEmpID('Id'),
+      'sONum': widget.data['salesOrderNo'],
+      'sOEntry': widget.data['soEntry'],
+      'cardCode': widget.data['customerCode'],
+      'cardName': widget.data['customerName'],
+      'containerNo': containernumbercontroller.text,
+      'docStatus': value1 == true ? "closed" : "open",
+      'supervisorCode': superVisorCode,
+      'supervisorName': superVisorName,
+      'dateofLoading': dateofLoadingContainer.text,
+      'actualQtyLoaded': "0",
+      'whoSealedtheContainer': sealedByNameController.text,
+      'clearancegivenby': clearanceByController.text,
+    };
+    List<Map<String, dynamic>> jsonList = [];
+    if (items.isNotEmpty) {
+      for (int i = 0; i < items.length; i++) {
+        items[i].sealNo = sealNocontroller.text;
+        items[i].vechicleNo = vehicleNoController.text;
+        items[i].weighNo = weightnocontroller.text;
+      }
+
+      jsonList = items.map((e) => e.toJson()).toList();
+    }
+    try {
+      final response = await apiService.postrequest(
+        map,
+        _images,
+        jsonList.isEmpty ? [] : jsonList,
+        getcompanyname,
+        getbranchId.toString(),
+        selectedImageList,
+      );
+
+      setState(() => loading = false);
+
+      if (response.statusCode == 200 || response.statusCode < 300) {
+        final responseBody = await response.stream.bytesToString();
+        final jsonResponse = jsonDecode(responseBody);
+
+        if (jsonResponse['success'].toString() == "true") {
+          AppUtils.showSingleDialogPopup(
+            context,
+            jsonResponse['message'].toString(),
+            "Ok",
+            onrefresh,
+            null,
+          );
+        } else {
+          AppUtils.showSingleDialogPopup(
+            context,
+            jsonResponse['message'].toString(),
+            "Ok",
+            onexitpopup,
+            null,
+          );
+        }
+      } else {
+        final errorBody = await response.stream.bytesToString();
+        AppUtils.showSingleDialogPopup(
+          context,
+          jsonDecode(errorBody)['message'].toString(),
+          "Ok",
+          onexitpopup,
+          null,
+        );
+      }
+    } catch (e) {
+      setState(() => loading = false);
+
+      final errorMessage = e is TimeoutException
+          ? "Request timed out. Please check your internet connection."
+          : e is SocketException
+              ? "Network error. Please check your internet connection."
+              : e.toString();
+
+      AppUtils.showSingleDialogPopup(
+          context, errorMessage, "Ok", onexitpopup, null);
+    }
+  }
+
+  void updateYarnApi() {
+    final List<File> selectedImageList = _selectedImages.toList();
+
+    if (_editimages.isNotEmpty) {
+      _images.addAll(_editimages);
+    }
+
+    //_images.addAll(_editimages.where((img) => !_images.contains(img)));
+    setState(() {
+      loading = true;
+    });
+
+    final map = {
+      'docEntry': getLogisticID,
+      'docNum': getLogisticNo,
+      'userId': Prefs.getEmpID('Id'),
+      'sONum': widget.data['salesOrderNo']?.toString() ?? '',
+      'sOEntry': widget.data['soEntry']?.toString() ?? '',
+      'cardCode': widget.data['customerCode'] ?? '',
+      'cardName': widget.data['customerName'] ?? '',
+      'containerNo': containernumbercontroller.text,
+      'docStatus': value1 == true ? "closed" : "open",
+      'supervisorCode': superVisorCode,
+      'supervisorName': superVisorName,
+      'dateofLoading': dateofLoadingContainer.text,
+      'actualQtyLoaded': actualQtyLoadedContainer.text,
+      'whoSealedtheContainer': sealedByNameController.text,
+      'clearancegivenby': clearanceByController.text,
+    };
 
     apiService
-        .postrequest(map, _images, items, getcompanyname, getbranchId)
+        .updateyarnList(
+            map,
+            _images,
+            items,
+            getcompanyname,
+            getbranchId.toString(),
+            widget.data['yardLoadingId'] ?? '',
+            _removedURL,
+            selectedImageList)
         .then((response) async {
       setState(() {
         loading = false;
       });
+
+      String responseBody = await response.stream.bytesToString();
+      Map<String, dynamic> jsonResponse = jsonDecode(responseBody);
+
+      print("🔸 updateYarnList() Response: $jsonResponse");
+
       if (response.statusCode == 200 || response.statusCode < 300) {
-        String responseBody = await response.stream.bytesToString();
-        Map<String, dynamic> jsonResponse = jsonDecode(responseBody);
-        print(jsonResponse['success'].toString() == "true");
         if (jsonResponse['success'].toString() == "true") {
-          AppUtils.showSingleDialogPopup(context,
-              jsonResponse['message'].toString(), "Ok", onrefresh, null);
+          AppUtils.showSingleDialogPopup(
+            context,
+            jsonResponse['message'].toString(),
+            "Ok",
+            onrefresh,
+            null,
+          );
         } else {
           AppUtils.showSingleDialogPopup(
-              context,
-              jsonDecode(response.body)['message'].toString(),
-              "Ok",
-              onexitpopup,
-              null);
-        }
-      } else if (response.statusCode == 401) {
-      } else {
-        setState(() {
-          loading = false;
-        });
-        AppUtils.showSingleDialogPopup(
             context,
-            jsonDecode(response.body)['message'].toString(),
+            jsonResponse['message'].toString(),
             "Ok",
             onexitpopup,
-            null);
+            null,
+          );
+        }
+      } else {
+        AppUtils.showSingleDialogPopup(
+          context,
+          jsonResponse['message'].toString(),
+          "Ok",
+          onexitpopup,
+          null,
+        );
       }
     }).catchError((e) {
       setState(() {
         loading = false;
       });
-      String errorMessage = "";
 
+      final String errorMessage;
       if (e is TimeoutException) {
-        errorMessage =
-            "Request timed out. Please check your internet connection and try again.";
+        errorMessage = "Request timed out. Please try again.";
       } else if (e is SocketException) {
-        errorMessage = "Network error. Please check your internet connection.";
+        errorMessage = "No internet connection.";
       } else {
         errorMessage = e.toString();
       }
+
       AppUtils.showSingleDialogPopup(
           context, errorMessage, "Ok", onexitpopup, null);
     });
   }
 
-  void updateYarnApi() {
-    setState(() {
-      loading = true;
-    });
-    final map = <String, dynamic>{};
-    map['docEntry'] = getLogisticID;
-    map['docNum'] = getLogisticNo;
-    map['userId'] = Prefs.getEmpID('Id');
-    map['sONum'] = widget.data['salesOrderNo'].toString();
-    map['sOEntry'] = widget.data['soEntry'];
-    map['cardCode'] = widget.data['customerCode'];
-    map['cardName'] = widget.data['customerName'];
-    map['containerNo'] = containernumbercontroller.text;
-    map['docStatus'] = value1 == true ? "closed" : "opened";
-
-    apiService
-        .updateyarnList(map, _images, items, getcompanyname, getbranchId,
-            widget.data['yardLoadingId'], _removedURL)
-        .then((response) async {
-      setState(() {
-        loading = false;
-      });
-      if (response.statusCode == 200 || response.statusCode < 300) {
-        String responseBody = await response.stream.bytesToString();
-        Map<String, dynamic> jsonResponse = jsonDecode(responseBody);
-        print(jsonResponse['success'].toString() == "true");
-        if (jsonResponse['success'].toString() == "true") {
-          AppUtils.showSingleDialogPopup(context,
-              jsonResponse['message'].toString(), "Ok", onrefresh, null);
-        } else {
-          AppUtils.showSingleDialogPopup(
-              context,
-              jsonDecode(response.body)['message'].toString(),
-              "Ok",
-              onexitpopup,
-              null);
-        }
-      } else if (response.statusCode == 401) {
-      } else {
-        setState(() {
-          loading = false;
-        });
-        AppUtils.showSingleDialogPopup(
-            context,
-            jsonDecode(response.body)['message'].toString(),
-            "Ok",
-            onexitpopup,
-            null);
-      }
-    }).catchError((e) {
-      setState(() {
-        loading = false;
-      });
-      AppUtils.showSingleDialogPopup(
-          context, e.toString(), "Ok", onexitpopup, null);
-    });
-  }
-
   void getyarneditloadinglist() {
-    setState(() {
-      loading = true;
-    });
+    setState(() => loading = true);
 
     apiService
         .geteditsingleyarnloading(
             getcompanyname, getbranchId, widget.data['yardLoadingId'])
         .then((response) async {
-      setState(() {
-        loading = false;
-      });
-      if (response.statusCode == 200 || response.statusCode < 300) {
+      setState(() => loading = false);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final decoded = jsonDecode(response.body);
+        final result = decoded['result'];
+
         editmodel.clear();
-        editmodel = jsonDecode(response.body)['result']
-            .map<YarnEditListModel>((item) => YarnEditListModel.fromJson(item))
-            .toList();
+        items.clear();
+        _editimages.clear();
 
-        for (var edititems in editmodel.first.items) {
-          items.add(PostItem(
-              edititems.lineId,
-              edititems.itemCode.toString(),
-              edititems.itemName.toString(),
-              edititems.warehouse,
-              edititems.emptyWeight,
-              edititems.grossWeight,
-              edititems.finalDoQty,
-              edititems.netWeight,
-              edititems.baseEntry,
-              edititems.baseLine,
-              edititems.baseType.toString(),
-              edititems.packingWeight,
-              edititems.packingtype,
-              edititems.packingtypeName,
-              edititems.noofpack));
-        }
+        if (result != null && result is List) {
+          editmodel = result
+              .map<YarnEditListModel>(
+                  (item) => YarnEditListModel.fromJson(item))
+              .toList();
 
-        for (var editimages in editmodel.first.attachmentPath) {
-          if (editimages.filename.isNotEmpty) {
-            _editimages.add(File(jsonEncode(editimages.url)));
-            print(_editimages);
+          for (var model in editmodel) {
+            // 🧾 Parse item lines
+            if ((model.items ?? []).isNotEmpty) {
+              for (var edititems in model.items) {
+                items.add(PostItem(
+                  edititems.lineId,
+                  edititems.yardLoadingLineId,
+                  edititems.itemCode.toString(),
+                  edititems.itemName.toString(),
+                  edititems.warehouse,
+                  edititems.emptyWeight,
+                  edititems.grossWeight,
+                  edititems.finalDoQty,
+                  edititems.netWeight,
+                  edititems.baseEntry,
+                  edititems.baseLine,
+                  edititems.baseType.toString(),
+                  edititems.packingWeight,
+                  edititems.packingtype,
+                  edititems.packingtypeName =
+                      getPackingName(edititems.packingtype.toString()),
+                  edititems.noofpack,
+                  edititems.sealNo,
+                  edititems.vechicleNo,
+                  edititems.weighNo,
+                ));
+              }
+            }
+
+            // 🖼️ Parse attachments
+            if (model.attachmentPath.isNotEmpty) {
+              for (var editimages in model.attachmentPath) {
+                if ((editimages.filename ?? '').isNotEmpty &&
+                    (editimages.url ?? '').isNotEmpty) {
+                  _editimages.add(File(editimages.url));
+                }
+              }
+            }
           }
-        }
 
-        _calculateTotals();
-        //items.add(PostItem(itemcode, itemname, whs, emptyQty, grossWeight, finalDOQty, netWeight))
-      } else if (response.statusCode == 401) {
-        editmodel.clear();
-        setState(() {
-          loading = false;
-        });
-        AppUtils.showSingleDialogPopup(
+          // 🚛 Prefill vehicle/seal/weight fields
+          if (items.isNotEmpty) {
+            vehicleNoController.text = items[0].vechicleNo.toString();
+            weightnocontroller.text = items[0].weighNo.toString();
+            sealNocontroller.text = items[0].sealNo.toString();
+          }
+
+          _calculateTotals();
+        } else {
+          AppUtils.showSingleDialogPopup(
             context,
-            jsonDecode(response.body)['message'].toString(),
+            "No data found in the API response.",
             "Ok",
-            handleTokenExpired,
-            null);
+            null,
+            null,
+          );
+        }
+      } else if (response.statusCode == 401 || response.statusCode == 500) {
+        final errorMessage =
+            jsonDecode(response.body)['message'].toString() ?? "Error occurred";
+        editmodel.clear();
+        setState(() => loading = false);
+        AppUtils.showSingleDialogPopup(
+            context, errorMessage, "Ok", handleTokenExpired, null);
       }
     }).catchError((e) {
-      setState(() {
-        loading = false;
-      });
-      String errorMessage = "";
+      setState(() => loading = false);
+      String errorMessage;
 
       if (e is TimeoutException) {
         errorMessage =
@@ -1016,6 +1563,7 @@ class _YardLoadingState extends State<YardLoading> {
       } else {
         errorMessage = e.toString();
       }
+
       AppUtils.showSingleDialogPopup(
           context, errorMessage, "Ok", onexitpopup, null);
     });
@@ -1031,6 +1579,14 @@ class _YardLoadingState extends State<YardLoading> {
     totalnoofpack = items.fold(0, (sum, item) => sum + (item.noofpack!));
 
     setState(() {});
+  }
+
+  String getPackingName(String id) {
+    print(id);
+    return packinglist.firstWhere(
+      (item) => item['id'].toString() == id.toString(),
+      orElse: () => {'name': 'Unknown'},
+    )['name'];
   }
 
   void onexitpopup() {

@@ -14,7 +14,6 @@ import 'package:pgiconnect/screens/dbselectionpage/dbselection.dart';
 import 'package:pgiconnect/screens/login/login/loginpage.dart';
 import 'package:pgiconnect/screens/login/utils/app_utils.dart';
 import 'package:pgiconnect/service/appcolor.dart';
-import 'package:pgiconnect/widgets/customimagewithindicator.dart';
 
 class ClaimListPage extends StatefulWidget {
   const ClaimListPage({super.key});
@@ -234,7 +233,7 @@ class _ClaimListPageState extends State<ClaimListPage> {
                                         style: TextStyle(color: Colors.black)),
                                     Text('Invoice No',
                                         style: TextStyle(color: Colors.black)),
-                                    Text('Claim Amt',
+                                    Text('Provisional Amt',
                                         style: TextStyle(color: Colors.black)),
                                   ],
                                 ),
@@ -734,6 +733,8 @@ class _ClaimListPageState extends State<ClaimListPage> {
         Prefs.setCompanyName("CompanyName", getcompanyname);
       });
       getpendingList();
+      getforwardList();
+      getApproveList();
     }
   }
 
@@ -753,6 +754,8 @@ class _ClaimListPageState extends State<ClaimListPage> {
         Prefs.setBranchName('BranchName', getbranchName);
       });
       getpendingList();
+      getforwardList();
+      getApproveList();
     }
   }
 }

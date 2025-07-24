@@ -562,6 +562,7 @@ class _LoginPageState extends State<LoginPage> {
         if (jsonDecode(response.body)['success'].toString() == "true") {
           model = LoginModel.fromJson(jsonDecode(response.body));
           await Prefs.setEmpID("Id", model.user!.userId.toString());
+          await Prefs.setLoginID("ID", model.user!.empID.toString());
           await Prefs.setFullName("Name", model.user!.employeName.toString());
           await Prefs.setToken("token", model.token!.accessToken.toString());
           await Prefs.setLoggedIn("IsLoggedIn", true);
@@ -569,6 +570,11 @@ class _LoginPageState extends State<LoginPage> {
           await Prefs.setBranchID('BranchID', model.user!.branch!);
           await Prefs.setBranchName(
               'BranchName', model.user!.branchName.toString());
+          await Prefs.setWeighLocationID(
+              'WeighLocationID', model.user!.weigLocid.toString());
+          await Prefs.setWeighLocationName(
+              'WeighLocationName', model.user!.weigLocname.toString());
+
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const DashboardScreen()),
@@ -582,13 +588,22 @@ class _LoginPageState extends State<LoginPage> {
               onexitpopup,
               null);
         }
+      } else if (response.statusCode == 404) {
+        AppUtils.showSingleDialogPopup(
+          context,
+          "Login API not found (404). Please contact support or check the URL.",
+          "Ok",
+          onexitpopup,
+          null,
+        );
       } else {
         setState(() {
           loading = false;
         });
         AppUtils.showSingleDialogPopup(
             context,
-            jsonDecode(response.body)['message'].toString(),
+            jsonDecode(response.body)['message']?.toString() ??
+                "Something went wrong.",
             "Ok",
             onexitpopup,
             null);
@@ -633,7 +648,7 @@ class _LoginPageState extends State<LoginPage> {
     await Prefs.setLoggedIn("isLogged", true);
     await Prefs.setFullName("fullName", "");
 
-    await Prefs.setEmpID("ID", emailController.text);
+    await Prefs.setEmpID("Id", model.user!.empID.toString());
     await Prefs.setToken("token", model.token.toString());
 
     if (context.mounted) {
