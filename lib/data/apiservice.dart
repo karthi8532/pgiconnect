@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:pgiconnect/const/pref.dart';
@@ -199,6 +200,9 @@ class ApiService {
     request.fields['actualQtyLoaded'] = finalMap['actualQtyLoaded'];
     request.fields['whoSealedtheContainer'] = finalMap['whoSealedtheContainer'];
     request.fields['clearancegivenby'] = finalMap['clearancegivenby'];
+    request.fields['sealNo'] = finalMap['sealNo'];
+    request.fields['vechicleNo'] = finalMap['vechicleNo'];
+    request.fields['weighNo'] = finalMap['weighNo'];
     request.fields['items'] = jsonEncode(items);
 
     // Upload 'files'
@@ -271,6 +275,11 @@ class ApiService {
     request.fields['dateofLoading'] = finalMap['dateofLoading'];
     request.fields['actualQtyLoaded'] = finalMap['actualQtyLoaded'];
     request.fields['whoSealedtheContainer'] = finalMap['whoSealedtheContainer'];
+    request.fields['clearancegivenby'] = finalMap['clearancegivenby'];
+    request.fields['sealNo'] = finalMap['sealNo'];
+    request.fields['vechicleNo'] = finalMap['vechicleNo'];
+    request.fields['weighNo'] = finalMap['weighNo'];
+
     request.fields['clearancegivenby'] = finalMap['clearancegivenby'];
     request.fields['items'] = jsonEncode(items);
     request.fields['filesRemoved'] = jsonEncode(removeImages);
@@ -363,7 +372,7 @@ class ApiService {
           Uri.parse(
               "${Appconstant.apiBaseUrl}api/yardloading/read/$getDBName/$getBranchName/$getId"),
           headers: headers);
-
+      print(jsonEncode(getId));
       return response;
     } catch (e) {
       throw HttpException("Network error: ${e.toString()}");
@@ -398,9 +407,9 @@ class ApiService {
     try {
       final response = await http.get(
           Uri.parse(
-              "${Appconstant.apiBaseUrl}api/claimApproval/read/$getDBName/$getBranchName/$id?mode=${modetype.toLowerCase()}"),
+              "${Appconstant.apiBaseUrl}api/claimApproval/read/$getDBName/$getBranchName/$id?mode=${modetype.toLowerCase()}&userId=${Prefs.getEmpID('Id').toString()}"),
           headers: headers);
-
+      print(id);
       return response;
     } catch (e) {
       throw HttpException("Network error: ${e.toString()}");
@@ -822,8 +831,16 @@ class ApiService {
     }
   }
 
-  Future postrequestunloading(Map<String, dynamic> finalMap, files, items,
-      getDBName, getBranchName, String type) async {
+  Future postrequestunloading(
+    Map<String, dynamic> finalMap,
+    List<File> files,
+    List<dynamic> items,
+    getDBName,
+    getBranchName,
+    String type,
+    List<dynamic> removeImages,
+    List<File> selectedImages,
+  ) async {
     final url = Uri.parse(
         "${Appconstant.apiBaseUrl}api/$type/Create/$getDBName/$getBranchName");
 
@@ -867,20 +884,31 @@ class ApiService {
     request.fields['PriceStatus'] = finalMap['PriceStatus'];
     request.fields['weighLocation'] = finalMap['weighLocation'];
     request.fields['whsCode'] = finalMap['whsCode'];
+    request.fields['filesRemoved'] = jsonEncode(removeImages);
+    for (File filePath in files) {
+      File file = File(filePath.path);
+      if (await file.exists()) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'files',
+            filePath.path,
+            filename: basename(filePath.path),
+          ),
+        );
+      }
+    }
 
-    // for (File filePath in files) {
-    //   File file = File(filePath.path);
-    //   if (await file.exists()) {
-    //     request.files.add(
-    //       await http.MultipartFile.fromPath(
-    //         'files',
-    //         filePath.path,
-    //         filename: basename(filePath.path),
-    //       ),
-    //     );
-    //   }
-    // }
-    print(request.fields);
+    for (File filePath in selectedImages) {
+      if (await filePath.exists()) {
+        print("📸 UPDATE Attaching selectedImage: ${basename(filePath.path)}");
+        request.files.add(await http.MultipartFile.fromPath(
+          'selectedFiles',
+          filePath.path,
+          filename: basename(filePath.path),
+        ));
+      }
+    }
+    log(jsonEncode(request.fields));
     var response = await request.send();
 
     return response;

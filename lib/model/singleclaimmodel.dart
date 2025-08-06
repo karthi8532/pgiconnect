@@ -171,38 +171,39 @@ class Commands {
   String? appType;
   String? toApproverCode;
   String? fromApproverCode;
+  String? canEndit;
 
-  Commands({
-    this.docEntry,
-    this.appPosition,
-    this.approverCode,
-    this.approverName,
-    this.approverStatus,
-    this.tempStatus,
-    this.department,
-    this.userId,
-    this.appDate,
-    this.remarks,
-    this.appType,
-    this.toApproverCode,
-    this.fromApproverCode,
-  });
+  Commands(
+      {this.docEntry,
+      this.appPosition,
+      this.approverCode,
+      this.approverName,
+      this.approverStatus,
+      this.tempStatus,
+      this.department,
+      this.userId,
+      this.appDate,
+      this.remarks,
+      this.appType,
+      this.toApproverCode,
+      this.fromApproverCode,
+      this.canEndit});
 
   factory Commands.fromJson(Map<String, dynamic> json) => Commands(
-        docEntry: toInt(json['docEntry']),
-        appPosition: toStringVal(json['appPosition']),
-        approverCode: toStringVal(json['approverCode']),
-        approverName: toStringVal(json['approverName']),
-        approverStatus: toStringVal(json['approverStatus']),
-        tempStatus: toStringVal(json['approverStatus']), // <== initialize here
-        department: toStringVal(json['department']),
-        userId: toStringVal(json['userId']),
-        appDate: toStringVal(json['appDate']),
-        remarks: toStringVal(json['remarks']),
-        appType: toStringVal(json['appType']),
-        fromApproverCode: toStringVal(json['fromApproverCode']),
-        toApproverCode: toStringVal(json['toApproverCode']),
-      );
+      docEntry: toInt(json['docEntry']),
+      appPosition: toStringVal(json['appPosition']),
+      approverCode: toStringVal(json['approverCode']),
+      approverName: toStringVal(json['approverName']),
+      approverStatus: toStringVal(json['approverStatus']),
+      tempStatus: toStringVal(json['approverStatus']), // <== initialize here
+      department: toStringVal(json['department']),
+      userId: toStringVal(json['userId']),
+      appDate: toStringVal(json['appDate']),
+      remarks: toStringVal(json['remarks']),
+      appType: toStringVal(json['appType']),
+      fromApproverCode: toStringVal(json['fromApproverCode']),
+      toApproverCode: toStringVal(json['toApproverCode']),
+      canEndit: toStringVal(json['canEndit']));
 }
 
 class AttachmentPath {

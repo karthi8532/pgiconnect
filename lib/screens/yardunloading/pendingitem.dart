@@ -56,16 +56,15 @@ class _PendingItemScreenState extends State<PendingItemScreen> {
 
     apiService
         .getpendingunloadingitesm(
-      widget.getDBName,
-      widget.getBranchID,
-      // widget.fromDate,
-      // widget.toDate,
-      widget.supplierId,
-      widget.supplierName,
-      widget.pickupNo,
-      widget.location,
-      widget.ticketNo
-    )
+            widget.getDBName,
+            widget.getBranchID,
+            // widget.fromDate,
+            // widget.toDate,
+            widget.supplierId,
+            widget.supplierName,
+            widget.pickupNo,
+            widget.location,
+            widget.ticketNo)
         .then((response) async {
       setState(() => loading = false);
 

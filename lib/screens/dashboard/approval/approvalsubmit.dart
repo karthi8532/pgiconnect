@@ -53,6 +53,8 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
   MapEntry<String, String>? selectedStatus;
   List<Forwardmodel> forwardlist = [];
   int selectedPosition = 0;
+  String toapprover = "";
+  String toposition = "";
   @override
   void initState() {
     getpendingList();
@@ -65,6 +67,7 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
     cusNamecontroller.dispose();
     poNumcontroller.dispose();
     supplierNamecontroller.dispose();
+    claimReason.dispose();
     sellTypecontroller.dispose();
     destCountrycontroller.dispose();
     suppliercountrycontroller.dispose();
@@ -76,7 +79,6 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
     effectGPcontroller.dispose();
     claimAmount.dispose();
     customerClaim.dispose();
-    claimReason.dispose();
     super.dispose();
   }
 
@@ -96,11 +98,13 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
           ),
           centerTitle: true,
           actions: [
-            IconButton(
-                onPressed: () {
-                  postingitem();
-                },
-                icon: Icon(Icons.save))
+            singleclaimlist.isNotEmpty
+                ? IconButton(
+                    onPressed: () {
+                      postingitem();
+                    },
+                    icon: Icon(Icons.save))
+                : Container()
           ],
         ),
         body: !loading
@@ -136,10 +140,18 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
                     child: TabBarView(
                       physics: ScrollPhysics(),
                       children: [
-                        headerwidgets(),
-                        commentWidets(),
-                        itemsswidgets(),
-                        attachmentwidget()
+                        singleclaimlist.isNotEmpty
+                            ? headerwidgets()
+                            : Container(),
+                        singleclaimlist.isNotEmpty
+                            ? commentWidets()
+                            : Container(),
+                        singleclaimlist.isNotEmpty
+                            ? itemsswidgets()
+                            : Container(),
+                        singleclaimlist.isNotEmpty
+                            ? attachmentwidget()
+                            : Container()
                       ],
                     ),
                   )
@@ -201,9 +213,8 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
             customerClaim.text = singleclaimlist.first.cusClaim.toString();
           });
         } else {
-          setState(() {
-            singleclaimlist.clear();
-          });
+          AppUtils.showSingleDialogPopup(context,
+              jsonDecode(response.body)['message'], "OK", onexitpopup, null);
         }
       } else if (response.statusCode == 401) {
         singleclaimlist.clear();
@@ -241,48 +252,35 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
       command.approverStatus = command.tempStatus;
     }
     for (int i = 0; i < singleclaimlist.first.commands!.length; i++) {
-      postitem.add(PostApproval(
-          singleclaimlist.first.docEntry,
-          singleclaimlist.first.commands![i].appPosition.toString(),
-          singleclaimlist.first.commands![i].approverCode.toString(),
-          singleclaimlist.first.commands![i].approverName.toString(),
-          singleclaimlist.first.commands![i].approverStatus.toString(),
-          singleclaimlist.first.commands![i].department.toString(),
-          singleclaimlist.first.commands![i].userId.toString(),
-          singleclaimlist.first.commands![i].appDate.toString(),
-          singleclaimlist.first.commands![i].remarks.toString(),
-          singleclaimlist.first.commands![i].appType.toString(),
-          (i == selectedPosition && isForwared == true)
-              ? Prefs.getEmpID("Id")
-              : "",
-          i == selectedPosition && isForwared == true
-              ? singleclaimlist.first.commands![selectedPosition].approverCode
-              : ""));
+      if (singleclaimlist.first.commands![i].canEndit == "Y") {
+        postitem.add(PostApproval(
+            singleclaimlist.first.docEntry,
+            singleclaimlist.first.commands![i].appPosition.toString(),
+            singleclaimlist.first.commands![i].approverCode.toString(),
+            singleclaimlist.first.commands![i].approverName.toString(),
+            singleclaimlist.first.commands![i].approverStatus.toString(),
+            singleclaimlist.first.commands![i].department.toString(),
+            singleclaimlist.first.commands![i].userId.toString(),
+            singleclaimlist.first.commands![i].appDate.toString(),
+            singleclaimlist.first.commands![i].remarks.toString(),
+            singleclaimlist.first.commands![i].appType.toString(),
+            (i == i && isForwared == true) ? Prefs.getEmpID("Id") : "",
+            i == i && isForwared == true
+                ? singleclaimlist.first.commands![i].approverCode
+                : "",
+            singleclaimlist.first.commands![i].appPosition.toString(),
+            singleclaimlist.first.commands![i].tempStatus == "F"
+                ? toapprover
+                : "",
+            singleclaimlist.first.commands![i].tempStatus == "F"
+                ? toposition
+                : ""));
+      }
     }
 
-    Map<String, dynamic> newItemMap = {
-      "docEntry": singleclaimlist.first.commands![selectedPosition].docEntry,
-      "appPosition":
-          singleclaimlist.first.commands![selectedPosition].appPosition,
-      "approverCode":
-          singleclaimlist.first.commands![selectedPosition].approverCode,
-      "approverName":
-          singleclaimlist.first.commands![selectedPosition].approverName,
-      "approverStatus":
-          singleclaimlist.first.commands![selectedPosition].approverStatus,
-      "department":
-          singleclaimlist.first.commands![selectedPosition].department,
-      "userId": singleclaimlist.first.commands![selectedPosition].userId,
-      "appDate": singleclaimlist.first.commands![selectedPosition].appDate,
-      "remarks": singleclaimlist.first.commands![selectedPosition].remarks,
-      "appType": "Forwarded",
-      "forwardFrom": Prefs.getEmpID("Id"),
-      "forwardTo":
-          singleclaimlist.first.commands![selectedPosition].approverCode,
-    };
-    if (isForwared == true) {
-      postitem.add(PostApproval.fromJson(newItemMap));
-    }
+    // if (isForwared == true) {
+    //   postitem.add(PostApproval.fromJson(newItemMap));
+    // }
     setState(() {
       loading = true;
     });
@@ -405,12 +403,12 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
             //   claimIntimationcontroller.text.toString(),
             //   Icons.info,
             // ),
-            const SizedBox(height: 5),
-            _buildTextField(
-              "Aging",
-              agingcontroller.text.toString(),
-              Icons.date_range_outlined,
-            ),
+            // const SizedBox(height: 5),
+            // _buildTextField(
+            //   "Aging",
+            //   agingcontroller.text.toString(),
+            //   Icons.date_range_outlined,
+            // ),
 
             // const SizedBox(height: 5),
             // _buildTextField(
@@ -503,11 +501,11 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
 
   Widget commentWidets() {
     final currentUserId = Prefs.getEmpID('Id').toString();
-
+    print(currentUserId);
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: singleclaimlist.first.commands!.isNotEmpty
+        child: singleclaimlist.isNotEmpty
             ? ListView.builder(
                 itemCount: singleclaimlist.first.commands!.length,
                 shrinkWrap: true,
@@ -521,9 +519,9 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
                   );
 
                   // Approver forwarding options excluding self
-                  final filteredCommands = singleclaimlist.first.commands!
-                      .where((c) => c.approverCode.toString() != currentUserId)
-                      .toList();
+                  // final filteredCommands = singleclaimlist.first.commands!
+                  //     .where((c) => c.approverCode.toString() != currentUserId)
+                  //     .toList();
 
                   // final approverItems = filteredCommands
                   //     .map((cmd) => MapEntry(
@@ -532,22 +530,24 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
                   //         ))
                   //     .toList();
 
-                  final bool isEditable =
-                      currentUserId == command.userId.toString() &&
-                          command.approverStatus == "P";
-                  final bool isForwardSelected = command.tempStatus == "F";
+                  // final bool isEditable =
+                  //     currentUserId == command.userId.toString() &&
+                  //         command.approverStatus == "P";
+                  // final bool isForwardSelected = command.tempStatus == "F";
+                  String canEndit = command.canEndit.toString();
 
                   final approverItems = singleclaimlist.first.commands!
-                      .where((c) => c.approverCode.toString() != currentUserId)
+                      .where((c) => c.userId.toString() != currentUserId)
                       .map((cmd) => MapEntry(
-                            "${cmd.approverName} - ${cmd.department} - ${cmd.approverCode}",
+                            "${cmd.approverName} -  ${cmd.approverCode}- ${cmd.department} -${cmd.userId},${cmd.appPosition}",
                             cmd,
                           ))
                       .toList();
-
+                  // toapprover =
+                  //     approverItems[index].value.approverCode.toString();
                   return Card(
                     margin: const EdgeInsets.only(bottom: 10),
-                    color: isEditable ? Colors.white : Colors.grey[300],
+                    color: canEndit == "Y" ? Colors.white : Colors.grey[300],
                     child: Padding(
                       padding: const EdgeInsets.all(8),
                       child: Column(
@@ -578,7 +578,7 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
                                 child: TextFormField(
                                   initialValue: command.approverName ?? '',
                                   readOnly: true,
-                                  enabled: isEditable,
+                                  enabled: canEndit == "Y",
                                   decoration: InputDecoration(
                                     contentPadding: const EdgeInsets.symmetric(
                                         horizontal: 10, vertical: 10),
@@ -600,7 +600,7 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
                               Expanded(
                                 flex: 5,
                                 child: DropdownSearch<MapEntry<String, String>>(
-                                  enabled: isEditable,
+                                  enabled: canEndit == "Y",
                                   selectedItem: selectedStatus,
                                   items: statusOption.entries.toList(),
                                   itemAsString: (entry) => entry.value,
@@ -609,7 +609,7 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
                                       setState(() {
                                         command.tempStatus = entry.key;
                                         isForwared = entry.key == 'F';
-                                        print(isForwared);
+                                        selectedPosition = index;
                                       });
                                     }
                                   },
@@ -631,7 +631,8 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
 
                           /// Row 3: Forward To & Date
                           Visibility(
-                            visible: isEditable && isForwardSelected,
+                            visible:
+                                canEndit == "Y" && command.tempStatus == "F",
                             child: Row(
                               children: [
                                 Expanded(
@@ -651,58 +652,112 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
 
                           /// Row 4: Forward Dropdown & Date Field
                           Visibility(
-                            visible: isEditable,
+                            visible: canEndit == "Y",
                             child: Row(
                               children: [
                                 Expanded(
                                   flex: 5,
                                   child: Visibility(
-                                      visible: isEditable && isForwardSelected,
+                                      visible: canEndit == "Y" &&
+                                          command.tempStatus == "F",
                                       child: DropdownSearch<
                                           MapEntry<String, Commands>>(
-                                        enabled: isEditable,
-                                        selectedItem: approverItems.firstWhere(
-                                          (entry) =>
-                                              entry.value.approverCode ==
-                                                  command.toApproverCode &&
-                                              entry.value.approverCode != null,
-                                          orElse: () => approverItems.isNotEmpty
-                                              ? approverItems.first
-                                              : MapEntry("No Approver",
-                                                  Commands()), // Provide a fallback Commands instance
-                                        ),
+                                        enabled: canEndit == "Y",
+                                        // selectedItem: approverItems.firstWhere(
+                                        //   (entry) =>
+                                        //       entry.value.approverCode ==
+                                        //           command.toApproverCode &&
+                                        //       entry.value.approverCode != null,
+                                        //   orElse: () => approverItems.isNotEmpty
+                                        //       ? approverItems.first
+                                        //       : MapEntry("No Approver",
+                                        //           Commands()), // Provide a fallback Commands instance
+                                        // ),
+                                        selectedItem: approverItems
+                                                    .isNotEmpty &&
+                                                selectedPosition <
+                                                    approverItems.length
+                                            ? approverItems[selectedPosition]
+                                            : null,
                                         items: approverItems,
-                                        itemAsString: (entry) => entry.key,
+                                        itemAsString: (entry) =>
+                                            "${entry.value.approverName ?? ''} ${entry.value.userId ?? ''}  - ${entry.value.department ?? ''}",
                                         onChanged: (entry) {
                                           setState(() {
-                                            command.toApproverCode =
-                                                entry?.value.approverCode;
-                                            command.fromApproverCode =
-                                                currentUserId;
+                                            // command.toApproverCode =
+                                            //     entry?.value.approverCode;
+                                            // command.fromApproverCode =
+                                            //     currentUserId;
+                                            // command.department=entry.value
+                                            // final int selectedIndex =
+                                            //     approverItems.indexOf(entry!);
+                                            // toapprover = entry
+                                            //     .value.approverCode
+                                            //     .toString();
+                                            // toposition =
+                                            //     selectedIndex.toString();
+                                            if (entry != null) {
+                                              setState(() {
+                                                final int selectedIndex =
+                                                    approverItems
+                                                        .indexOf(entry);
+
+                                                // Save values
+                                                command.toApproverCode =
+                                                    entry.value.userId;
+
+                                                toposition =
+                                                    command.toApproverCode =
+                                                        entry.value.appPosition
+                                                            .toString();
+
+                                                toapprover =
+                                                    command.toApproverCode =
+                                                        entry.value.userId
+                                                            .toString();
+
+                                                command.fromApproverCode =
+                                                    currentUserId;
+
+                                                command.department =
+                                                    entry.value.department;
+
+                                                // // Save index
+                                                // selectedPosition =
+                                                //     selectedIndex;
+
+                                                // toposition =
+                                                //     selectedIndex.toString();
+                                              });
+                                            }
                                           });
                                         },
                                       )),
                                 ),
                                 const SizedBox(width: 5),
-                                Expanded(
-                                  flex: 5,
-                                  child: TextFormField(
-                                    initialValue: command.appDate ?? '',
-                                    enabled: false,
-                                    readOnly: true,
-                                    decoration: InputDecoration(
-                                      contentPadding: EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 8),
-                                      focusedBorder: const OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              width: 1, color: Colors.grey)),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: const BorderSide(
-                                            color: Colors.black26, width: 1),
-                                      ),
-                                      disabledBorder: OutlineInputBorder(
-                                        borderSide: const BorderSide(
-                                            color: Colors.black26, width: 1),
+                                Visibility(
+                                  visible: canEndit == "Y" &&
+                                      command.tempStatus == "F",
+                                  child: Expanded(
+                                    flex: 5,
+                                    child: TextFormField(
+                                      initialValue: command.appDate ?? '',
+                                      enabled: false,
+                                      readOnly: true,
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 8),
+                                        focusedBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                width: 1, color: Colors.grey)),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderSide: const BorderSide(
+                                              color: Colors.black26, width: 1),
+                                        ),
+                                        disabledBorder: OutlineInputBorder(
+                                          borderSide: const BorderSide(
+                                              color: Colors.black26, width: 1),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -717,7 +772,8 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
                           const SizedBox(height: 5),
                           TextFormField(
                             initialValue: command.remarks ?? '',
-                            maxLines: 2,
+                            maxLines: null,
+                            minLines: 2,
                             enabled: command.approverStatus == "P",
                             onChanged: (val) {
                               command.remarks = val;
@@ -755,7 +811,7 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          singleclaimlist.first.items!.isNotEmpty
+          singleclaimlist.isNotEmpty
               ? ListView.builder(
                   itemCount: singleclaimlist.first.items!.length,
                   shrinkWrap: true,
@@ -778,7 +834,8 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        singleclaimlist.first.attachmentPath != null ||
+        singleclaimlist.isNotEmpty ||
+                singleclaimlist.first.attachmentPath != null ||
                 singleclaimlist.first.attachmentPath!.isNotEmpty
             ? ListView.builder(
                 itemCount: singleclaimlist.first.attachmentPath!.length,
@@ -887,7 +944,13 @@ class PostApproval {
   String? appType;
   String? forwardFrom;
   String? forwardTo;
-
+  String? position;
+  String? toExtEmpNo;
+  String? toPosition;
+//  "toPosition": selectedPosition,
+//       "toExtEmpNo":
+//           singleclaimlist.first.commands![selectedPosition].approverCode,
+//       "position": singleclaimlist.first.commands![selectedPosition].appPosition,
   PostApproval(
       this.docEntry,
       this.appPosition,
@@ -900,7 +963,10 @@ class PostApproval {
       this.remarks,
       this.appType,
       this.forwardFrom,
-      this.forwardTo);
+      this.forwardTo,
+      this.position,
+      this.toExtEmpNo,
+      this.toPosition);
 
   PostApproval.fromJson(Map<String, dynamic> json) {
     docEntry = json['docEntry'];
@@ -915,6 +981,9 @@ class PostApproval {
     appType = json['appType'];
     forwardFrom = json['forwardFrom'];
     forwardTo = json['forwardTo'];
+    position = json['position'];
+    toExtEmpNo = json['toExtEmpNo'];
+    toPosition = json['toPosition'];
   }
 
   Map<String, dynamic> toJson() {
@@ -931,6 +1000,10 @@ class PostApproval {
     data['appType'] = appType;
     data['forwardFrom'] = forwardFrom;
     data['forwardTo'] = forwardTo;
+    data['position'] = position;
+    data['toExtEmpNo'] = toExtEmpNo;
+    data['toPosition'] = toPosition;
+
     return data;
   }
 }

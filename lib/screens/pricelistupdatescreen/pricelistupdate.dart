@@ -53,7 +53,10 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
   ApiService apiService = ApiService();
   bool loading = false;
   int? expandedIndex;
-
+  final List<File> _images = [];
+  final List<File> _editimages = [];
+  final List<String> _removedURL = [];
+  final List<File> selectedImageList = [];
   final supplierKey = GlobalKey<DropdownSearchState<SuppplierModel>>();
   final agentKey = GlobalKey<DropdownSearchState<AgentModel>>();
   final projectkey = GlobalKey<DropdownSearchState<ProjectModel>>();
@@ -98,6 +101,8 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
   List<WarehouseModel> selectedwarehouse = [];
   List<EditUnloadModel> editYarnList = [];
 
+  PoLineModel? selectedpoLine;
+  PoModel? selectedPo;
   SuppplierModel? selectedSupplier;
 
   ProjectModel? selectedProject;
@@ -357,53 +362,7 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
               ),
             ),
             SizedBox(height: 5),
-            AppUtils.buildNormalText(text: "Project Details"),
-            SizedBox(height: 5),
-            DropdownSearch<ProjectModel>(
-              key: projectkey,
-              selectedItem: selectedProject,
-              popupProps: PopupProps.menu(
-                showSearchBox: true,
-                interceptCallBacks: true, //important line
-                itemBuilder: (ctx, item, isSelected) {
-                  return ListTile(
-                      selected: isSelected,
-                      title: Text(
-                        item.value.toString(),
-                        style: TextStyle(
-                          color: Colors.black,
-                        ),
-                      ),
-                      onTap: () {
-                        projectkey.currentState?.popupValidate([item]);
-                        getprojectId = item.id.toString();
-                        getprojectName = item.value.toString();
-                        setState(() {});
-                      });
-                },
-              ),
-              asyncItems: (String filter) => ApiService.getprojectlist(
-                Prefs.getDBName('DBName'),
-                Prefs.getBranchID('BranchID'),
-                filter: filter,
-              ),
-              itemAsString: (ProjectModel item) => item.value.toString(),
-              dropdownDecoratorProps: DropDownDecoratorProps(
-                dropdownSearchDecoration: InputDecoration(
-                  contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-                  hintText: 'Projects * ',
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(1),
-                    borderSide: const BorderSide(color: Colors.grey, width: 1),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(1),
-                    borderSide: const BorderSide(color: Colors.grey, width: 1),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 5),
+
             AppUtils.buildNormalText(text: "Yard"),
             SizedBox(height: 5),
             DropdownSearch<YardModel>(
@@ -451,52 +410,52 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
               ),
             ),
             SizedBox(height: 5),
-            AppUtils.buildNormalText(text: "Agent"),
-            SizedBox(height: 5),
-            DropdownSearch<AgentModel>(
-              selectedItem: selectedAgent,
-              key: agentKey,
-              popupProps: PopupProps.menu(
-                showSearchBox: true,
-                interceptCallBacks: true, //important line
-                itemBuilder: (ctx, item, isSelected) {
-                  return ListTile(
-                      selected: isSelected,
-                      title: Text(
-                        item.value.toString(),
-                        style: TextStyle(
-                          color: Colors.black,
-                        ),
-                      ),
-                      onTap: () {
-                        agentKey.currentState?.popupValidate([item]);
-                        getAgentCode = item.id.toString();
-                        getAgentName = item.value.toString();
-                        setState(() {});
-                      });
-                },
-              ),
-              asyncItems: (String filter) => ApiService.getAgentlist(
-                Prefs.getDBName('DBName'),
-                Prefs.getBranchID('BranchID'),
-                filter: filter,
-              ),
-              itemAsString: (AgentModel item) => item.value.toString(),
-              dropdownDecoratorProps: DropDownDecoratorProps(
-                dropdownSearchDecoration: InputDecoration(
-                  contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-                  hintText: 'Agent * ',
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(1),
-                    borderSide: const BorderSide(color: Colors.grey, width: 1),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(1),
-                    borderSide: const BorderSide(color: Colors.grey, width: 1),
-                  ),
-                ),
-              ),
-            ),
+            // AppUtils.buildNormalText(text: "Agent"),
+            // SizedBox(height: 5),
+            // DropdownSearch<AgentModel>(
+            //   selectedItem: selectedAgent,
+            //   key: agentKey,
+            //   popupProps: PopupProps.menu(
+            //     showSearchBox: true,
+            //     interceptCallBacks: true, //important line
+            //     itemBuilder: (ctx, item, isSelected) {
+            //       return ListTile(
+            //           selected: isSelected,
+            //           title: Text(
+            //             item.value.toString(),
+            //             style: TextStyle(
+            //               color: Colors.black,
+            //             ),
+            //           ),
+            //           onTap: () {
+            //             agentKey.currentState?.popupValidate([item]);
+            //             getAgentCode = item.id.toString();
+            //             getAgentName = item.value.toString();
+            //             setState(() {});
+            //           });
+            //     },
+            //   ),
+            //   asyncItems: (String filter) => ApiService.getAgentlist(
+            //     Prefs.getDBName('DBName'),
+            //     Prefs.getBranchID('BranchID'),
+            //     filter: filter,
+            //   ),
+            //   itemAsString: (AgentModel item) => item.value.toString(),
+            //   dropdownDecoratorProps: DropDownDecoratorProps(
+            //     dropdownSearchDecoration: InputDecoration(
+            //       contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+            //       hintText: 'Agent * ',
+            //       enabledBorder: OutlineInputBorder(
+            //         borderRadius: BorderRadius.circular(1),
+            //         borderSide: const BorderSide(color: Colors.grey, width: 1),
+            //       ),
+            //       focusedBorder: OutlineInputBorder(
+            //         borderRadius: BorderRadius.circular(1),
+            //         borderSide: const BorderSide(color: Colors.grey, width: 1),
+            //       ),
+            //     ),
+            //   ),
+            // ),
             SizedBox(
               height: 5,
             ),
@@ -549,7 +508,7 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
             SizedBox(
               height: 5,
             ),
-            AppUtils.buildNormalText(text: "Sales person"),
+            AppUtils.buildNormalText(text: "Purchase Trader"),
             SizedBox(height: 5),
             DropdownSearch<SalesPersonModel>(
               selectedItem: selectedSales,
@@ -598,39 +557,39 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
             SizedBox(
               height: 10,
             ),
-            AppUtils.buildNormalText(text: "PO Num"),
-            SizedBox(height: 5),
-            TextFormField(
-              controller: poNumcontroller,
-              keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly
-              ],
-              maxLines: 1,
-              readOnly: true,
-              onChanged: (val) => {},
-              decoration: InputDecoration(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(width: 1, color: Colors.grey)),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.black26, width: 1),
-                ),
-                hintText: "Po Num",
-                disabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.black26, width: 1),
-                ),
-              ),
-            ),
-            SizedBox(height: 5),
+            // AppUtils.buildNormalText(text: "PO Num"),
+            // SizedBox(height: 5),
+            // TextFormField(
+            //   controller: poNumcontroller,
+            //   keyboardType: TextInputType.number,
+            //   inputFormatters: <TextInputFormatter>[
+            //     FilteringTextInputFormatter.digitsOnly
+            //   ],
+            //   maxLines: 1,
+            //   readOnly: true,
+            //   onChanged: (val) => {},
+            //   decoration: InputDecoration(
+            //     contentPadding:
+            //         const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            //     focusedBorder: const OutlineInputBorder(
+            //         borderSide: BorderSide(width: 1, color: Colors.grey)),
+            //     enabledBorder: OutlineInputBorder(
+            //       borderSide: const BorderSide(color: Colors.black26, width: 1),
+            //     ),
+            //     hintText: "Po Num",
+            //     disabledBorder: OutlineInputBorder(
+            //       borderSide: const BorderSide(color: Colors.black26, width: 1),
+            //     ),
+            //   ),
+            // ),
+            // SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Expanded(
-                    flex: 5,
-                    child: AppUtils.buildNormalText(
-                        text: "Weigh bridge Location")),
+                // Expanded(
+                //     flex: 5,
+                //     child: AppUtils.buildNormalText(
+                //         text: "Weigh bridge Location")),
                 Expanded(
                     flex: 5,
                     child: AppUtils.buildNormalText(text: "Is Posting GRN")),
@@ -638,60 +597,60 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
             ),
             Row(
               children: [
-                Expanded(
-                  flex: 5,
-                  child: DropdownSearch<WeighLocationModel>(
-                    selectedItem: selectedWaybridge,
-                    key: weighKey,
-                    popupProps: PopupProps.menu(
-                      showSearchBox: true,
-                      interceptCallBacks: true, //important line
-                      itemBuilder: (ctx, item, isSelected) {
-                        return ListTile(
-                            selected: isSelected,
-                            title: Text(
-                              item.value.toString(),
-                              style: TextStyle(
-                                color: Colors.black,
-                              ),
-                            ),
-                            onTap: () {
-                              weighKey.currentState?.popupValidate([item]);
-                              getwaybridgeCode = item.id.toString();
-                              getwaybridgeName = item.value.toString();
-                              setState(() {});
-                            });
-                      },
-                    ),
-                    asyncItems: (String filter) =>
-                        ApiService.getwaybridgelocation(
-                      Prefs.getDBName('DBName'),
-                      Prefs.getBranchID('BranchID'),
-                      filter: filter,
-                    ),
-                    itemAsString: (WeighLocationModel item) =>
-                        item.value.toString(),
-                    dropdownDecoratorProps: DropDownDecoratorProps(
-                      dropdownSearchDecoration: InputDecoration(
-                        contentPadding: EdgeInsets.fromLTRB(5.0, 10, 5.0, 2),
-                        hintText: '',
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(1),
-                          borderSide:
-                              const BorderSide(color: Colors.grey, width: 1),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(1),
-                          borderSide:
-                              const BorderSide(color: Colors.grey, width: 1),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 5,
-                ),
+                // Expanded(
+                //   flex: 5,
+                //   child: DropdownSearch<WeighLocationModel>(
+                //     selectedItem: selectedWaybridge,
+                //     key: weighKey,
+                //     popupProps: PopupProps.menu(
+                //       showSearchBox: true,
+                //       interceptCallBacks: true, //important line
+                //       itemBuilder: (ctx, item, isSelected) {
+                //         return ListTile(
+                //             selected: isSelected,
+                //             title: Text(
+                //               item.value.toString(),
+                //               style: TextStyle(
+                //                 color: Colors.black,
+                //               ),
+                //             ),
+                //             onTap: () {
+                //               weighKey.currentState?.popupValidate([item]);
+                //               getwaybridgeCode = item.id.toString();
+                //               getwaybridgeName = item.value.toString();
+                //               setState(() {});
+                //             });
+                //       },
+                //     ),
+                //     asyncItems: (String filter) =>
+                //         ApiService.getwaybridgelocation(
+                //       Prefs.getDBName('DBName'),
+                //       Prefs.getBranchID('BranchID'),
+                //       filter: filter,
+                //     ),
+                //     itemAsString: (WeighLocationModel item) =>
+                //         item.value.toString(),
+                //     dropdownDecoratorProps: DropDownDecoratorProps(
+                //       dropdownSearchDecoration: InputDecoration(
+                //         contentPadding: EdgeInsets.fromLTRB(5.0, 10, 5.0, 2),
+                //         hintText: '',
+                //         enabledBorder: OutlineInputBorder(
+                //           borderRadius: BorderRadius.circular(1),
+                //           borderSide:
+                //               const BorderSide(color: Colors.grey, width: 1),
+                //         ),
+                //         focusedBorder: OutlineInputBorder(
+                //           borderRadius: BorderRadius.circular(1),
+                //           borderSide:
+                //               const BorderSide(color: Colors.grey, width: 1),
+                //         ),
+                //       ),
+                //     ),
+                //   ),
+                // ),
+                // SizedBox(
+                //   width: 5,
+                // ),
                 Expanded(
                   flex: 5,
                   child: DropdownSearch<MapEntry<String, String>>(
@@ -701,6 +660,7 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                     selectedItem: selectedGrn,
                     dropdownDecoratorProps: const DropDownDecoratorProps(
                       dropdownSearchDecoration: InputDecoration(
+                        contentPadding: EdgeInsets.fromLTRB(10.0, 10, 5.0, 2),
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -716,79 +676,126 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
               ],
             ),
             SizedBox(height: 10),
+            // SizedBox(height: 5),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //   children: [
+            //     Expanded(
+            //         flex: 5,
+            //         child: AppUtils.buildNormalText(
+            //             text: "Weighbridge From Date")),
+            //     Expanded(
+            //         flex: 5,
+            //         child:
+            //             AppUtils.buildNormalText(text: "Weighbridge To Date")),
+            //   ],
+            // ),
+            // SizedBox(height: 5),
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       flex: 5,
+            //       child: TextFormField(
+            //         maxLines: 1,
+            //         readOnly: true,
+            //         controller: weightfromdatecontroller,
+            //         onTap: () {
+            //           pickerfromdate();
+            //         },
+            //         decoration: InputDecoration(
+            //           contentPadding: const EdgeInsets.symmetric(
+            //               horizontal: 8, vertical: 8),
+            //           focusedBorder: const OutlineInputBorder(
+            //               borderSide: BorderSide(width: 1, color: Colors.grey)),
+            //           enabledBorder: OutlineInputBorder(
+            //             borderSide:
+            //                 const BorderSide(color: Colors.black26, width: 1),
+            //           ),
+            //           hintText: "Weigh bridge from date",
+            //           disabledBorder: OutlineInputBorder(
+            //             borderSide:
+            //                 const BorderSide(color: Colors.black26, width: 1),
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //     SizedBox(width: 5),
+            //     Expanded(
+            //       flex: 5,
+            //       child: TextFormField(
+            //         controller: weighttodatecontroller,
+            //         readOnly: true,
+            //         onTap: () {
+            //           pickertodate();
+            //         },
+            //         maxLines: 1,
+            //         onChanged: (val) => {},
+            //         decoration: InputDecoration(
+            //           contentPadding: const EdgeInsets.symmetric(
+            //               horizontal: 8, vertical: 8),
+            //           focusedBorder: const OutlineInputBorder(
+            //               borderSide: BorderSide(width: 1, color: Colors.grey)),
+            //           enabledBorder: OutlineInputBorder(
+            //             borderSide:
+            //                 const BorderSide(color: Colors.black26, width: 1),
+            //           ),
+            //           hintText: "Weigh bridge from date",
+            //           disabledBorder: OutlineInputBorder(
+            //             borderSide:
+            //                 const BorderSide(color: Colors.black26, width: 1),
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            AppUtils.buildNormalText(text: "Project Details"),
             SizedBox(height: 5),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                    flex: 5,
-                    child: AppUtils.buildNormalText(
-                        text: "Weighbridge From Date")),
-                Expanded(
-                    flex: 5,
-                    child:
-                        AppUtils.buildNormalText(text: "Weighbridge To Date")),
-              ],
-            ),
-            SizedBox(height: 5),
-            Row(
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: TextFormField(
-                    maxLines: 1,
-                    readOnly: true,
-                    controller: weightfromdatecontroller,
-                    onTap: () {
-                      pickerfromdate();
-                    },
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 8),
-                      focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(width: 1, color: Colors.grey)),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(color: Colors.black26, width: 1),
+            DropdownSearch<ProjectModel>(
+              key: projectkey,
+              selectedItem: selectedProject,
+              popupProps: PopupProps.menu(
+                showSearchBox: true,
+                interceptCallBacks: true, //important line
+                itemBuilder: (ctx, item, isSelected) {
+                  return ListTile(
+                      selected: isSelected,
+                      title: Text(
+                        item.value.toString(),
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
                       ),
-                      hintText: "Weigh bridge from date",
-                      disabledBorder: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(color: Colors.black26, width: 1),
-                      ),
-                    ),
+                      onTap: () {
+                        projectkey.currentState?.popupValidate([item]);
+                        getprojectId = item.id.toString();
+                        getprojectName = item.value.toString();
+                        setState(() {});
+                      });
+                },
+              ),
+              asyncItems: (String filter) => ApiService.getprojectlist(
+                Prefs.getDBName('DBName'),
+                Prefs.getBranchID('BranchID'),
+                filter: filter,
+              ),
+              itemAsString: (ProjectModel item) => item.value.toString(),
+              dropdownDecoratorProps: DropDownDecoratorProps(
+                dropdownSearchDecoration: InputDecoration(
+                  contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+                  hintText: 'Projects * ',
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(1),
+                    borderSide: const BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(1),
+                    borderSide: const BorderSide(color: Colors.grey, width: 1),
                   ),
                 ),
-                SizedBox(width: 5),
-                Expanded(
-                  flex: 5,
-                  child: TextFormField(
-                    controller: weighttodatecontroller,
-                    readOnly: true,
-                    onTap: () {
-                      pickertodate();
-                    },
-                    maxLines: 1,
-                    onChanged: (val) => {},
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 8),
-                      focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(width: 1, color: Colors.grey)),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(color: Colors.black26, width: 1),
-                      ),
-                      hintText: "Weigh bridge from date",
-                      disabledBorder: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(color: Colors.black26, width: 1),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
+            SizedBox(height: 5),
           ],
         ),
       ),
@@ -866,6 +873,8 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                   itemBuilder: (BuildContext context, int index) {
                     selectedWhs =
                         WarehouseModel(id: getwhsCode, value: getWhsName);
+                    final bool isLME =
+                        selectedPendingItems[index].invoiceType == 'LME';
                     try {
                       if (selectedPendingItems[index].documentType.isEmpty) {
                         selectedPendingItems[index].documentType =
@@ -1001,275 +1010,223 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                                     ],
                                   ),
                                   const SizedBox(height: 5),
+                                  // Item Name (Always show)
+
                                   AppUtils.buildNormalText(text: "Item Name"),
                                   const SizedBox(height: 5),
                                   TextFormField(
                                     initialValue:
                                         selectedPendingItems[index].itemName ??
                                             '',
-                                    enabled: true,
                                     readOnly: true,
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                       contentPadding: EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 8),
-                                      focusedBorder: const OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              width: 1, color: Colors.grey)),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: const BorderSide(
-                                            color: Colors.black26, width: 1),
-                                      ),
-                                      disabledBorder: OutlineInputBorder(
-                                        borderSide: const BorderSide(
-                                            color: Colors.black26, width: 1),
-                                      ),
+                                      border: OutlineInputBorder(),
                                     ),
                                   ),
+
+                                  const SizedBox(height: 10),
+                                  Row(children: [
+                                    Expanded(
+                                        flex: 5,
+                                        child: AppUtils.buildNormalText(
+                                            text: "Qty")),
+                                    Expanded(
+                                        flex: 5,
+                                        child: AppUtils.buildNormalText(
+                                            text: "Unit Price")),
+                                  ]),
                                   const SizedBox(height: 5),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 4,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Ware House"),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Expanded(
-                                        flex: 3,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Qty"),
-                                      ),
-                                      Expanded(
-                                        flex: 3,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Unit Price"),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 4,
-                                        child: DropdownSearch<WarehouseModel>(
-                                          key: whsKey1,
-                                          selectedItem: selectedWhs,
-                                          popupProps: PopupProps.menu(
-                                            showSearchBox: true,
-                                            interceptCallBacks:
-                                                true, //important line
-                                            itemBuilder:
-                                                (ctx, item, isSelected) {
-                                              return ListTile(
-                                                  selected: isSelected,
-                                                  title: Text(
-                                                    item.value.toString(),
-                                                    style: TextStyle(
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                  onTap: () {
-                                                    whsKey1.currentState
-                                                        ?.popupValidate([item]);
+                                  Row(children: [
+                                    Expanded(
+                                      flex: 5,
+                                      child: TextFormField(
+                                        initialValue:
+                                            selectedPendingItems[index]
+                                                .quantity
+                                                .toString(),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            selectedPendingItems[index]
+                                                    .quantity =
+                                                double.tryParse(value) ?? 0.0;
+                                            selectedPendingItems[index].total =
+                                                selectedPendingItems[index]
+                                                        .quantity *
                                                     selectedPendingItems[index]
-                                                            .warehouse =
-                                                        item.id.toString();
-                                                    getwhsCode =
-                                                        item.id.toString();
-                                                    getWhsName =
-                                                        item.value.toString();
-                                                    setState(() {});
-                                                  });
-                                            },
-                                          ),
-                                          asyncItems: (String filter) =>
-                                              ApiService.getwarehouselist(
-                                            Prefs.getDBName('DBName'),
-                                            Prefs.getBranchID('BranchID'),
-                                            filter: filter,
-                                          ),
-                                          itemAsString: (WarehouseModel item) =>
-                                              item.value.toString(),
-                                          dropdownDecoratorProps:
-                                              DropDownDecoratorProps(
-                                            dropdownSearchDecoration:
-                                                InputDecoration(
-                                              contentPadding:
-                                                  EdgeInsets.fromLTRB(
-                                                      20.0, 10.0, 20.0, 10.0),
-                                              hintText: ' ',
-                                              enabledBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(1),
-                                                borderSide: const BorderSide(
-                                                    color: Colors.grey,
-                                                    width: 1),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(1),
-                                                borderSide: const BorderSide(
-                                                    color: Colors.grey,
-                                                    width: 1),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                                        .unitPrice;
+                                          });
+                                        },
+                                        decoration: const InputDecoration(
+                                            border: OutlineInputBorder()),
                                       ),
-                                      SizedBox(width: 5),
-                                      Expanded(
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Expanded(
+                                      flex: 5,
+                                      child: TextFormField(
+                                        initialValue:
+                                            selectedPendingItems[index]
+                                                .unitPrice
+                                                .toString(),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            selectedPendingItems[index]
+                                                    .unitPrice =
+                                                double.tryParse(value) ?? 0.0;
+                                            selectedPendingItems[index].total =
+                                                selectedPendingItems[index]
+                                                        .quantity *
+                                                    selectedPendingItems[index]
+                                                        .unitPrice;
+                                          });
+                                        },
+                                        decoration: const InputDecoration(
+                                            border: OutlineInputBorder()),
+                                      ),
+                                    ),
+                                  ]),
+
+                                  const SizedBox(height: 10),
+                                  AppUtils.buildNormalText(
+                                      text: "Control Price"),
+                                  const SizedBox(height: 5),
+                                  TextFormField(
+                                    readOnly: true,
+                                    initialValue: selectedPendingItems[index]
+                                        .controlPrice
+                                        .toString(),
+                                    decoration: InputDecoration(
+                                      filled: true,
+                                      fillColor: Colors.grey.shade200,
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 10),
+                                  Row(children: [
+                                    Expanded(
                                         flex: 3,
-                                        child: TextFormField(
-                                          initialValue:
-                                              selectedPendingItems[index]
-                                                  .quantity
-                                                  .toString(),
-                                          onChanged: (value) => {
-                                            // Update the quantity in the item
+                                        child: AppUtils.buildNormalText(
+                                            text: "PO Num")),
+                                    Expanded(
+                                        flex: 3,
+                                        child: AppUtils.buildNormalText(
+                                            text: "PO Line")),
+                                  ]),
+                                  const SizedBox(height: 5),
+                                  Row(children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: DropdownSearch<PoModel>(
+                                        key: poKey,
+                                        selectedItem: selectedPo,
+                                        asyncItems: (filter) =>
+                                            ApiService.getpolists(
+                                          Prefs.getDBName('DBName'),
+                                          Prefs.getBranchID('BranchID'),
+                                          getsupplierId,
+                                          filter: filter,
+                                        ),
+                                        itemAsString: (item) =>
+                                            item.poNumber.toString(),
+                                        onChanged: (item) {
+                                          if (item != null) {
                                             setState(() {
                                               selectedPendingItems[index]
-                                                      .quantity =
-                                                  double.tryParse(value) ?? 0.0;
+                                                      .poNumber =
+                                                  item.poNumber.toString();
                                               selectedPendingItems[index]
-                                                  .total = selectedPendingItems[
-                                                          index]
-                                                      .quantity *
-                                                  selectedPendingItems[index]
-                                                      .unitPrice;
-                                            })
-                                          },
-                                          decoration: InputDecoration(
+                                                      .pOEntry =
+                                                  item.poEntry.toString();
+                                              selectedPendingItems[index]
+                                                      .poLine =
+                                                  item.poLine!.toInt();
+                                            });
+                                          }
+                                        },
+                                        dropdownDecoratorProps:
+                                            DropDownDecoratorProps(
+                                          dropdownSearchDecoration:
+                                              InputDecoration(
                                             contentPadding:
                                                 EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                            focusedBorder:
-                                                const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Colors.grey)),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                            disabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
+                                                    horizontal: 10,
+                                                    vertical: 10),
+                                            border: OutlineInputBorder(),
                                           ),
                                         ),
                                       ),
-                                      SizedBox(width: 5),
-                                      Expanded(
-                                        flex: 3,
-                                        child: TextFormField(
-                                          initialValue:
-                                              selectedPendingItems[index]
-                                                  .unitPrice
-                                                  .toString(),
-                                          onChanged: (value) {
-                                            try {
-                                              setState(() {
-                                                selectedPendingItems[index]
-                                                        .unitPrice =
-                                                    double.tryParse(value) ??
-                                                        0.0;
-                                                selectedPendingItems[index]
-                                                        .total =
-                                                    selectedPendingItems[index]
-                                                            .quantity *
-                                                        selectedPendingItems[
-                                                                index]
-                                                            .unitPrice;
-                                              });
-                                            } catch (e) {}
-                                          },
-                                          decoration: InputDecoration(
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Expanded(
+                                      flex: 3,
+                                      child: DropdownSearch<PoLineModel>(
+                                        key: poLineKey,
+                                        selectedItem: selectedpoLine,
+                                        asyncItems: (filter) =>
+                                            ApiService.getpolinenumber(
+                                          Prefs.getDBName('DBName'),
+                                          Prefs.getBranchID('BranchID'),
+                                          getsupplierId,
+                                          filter: filter,
+                                          selectedPendingItems[index].pOEntry,
+                                        ),
+                                        itemAsString: (item) =>
+                                            item.value.toString(),
+                                        dropdownDecoratorProps:
+                                            DropDownDecoratorProps(
+                                          dropdownSearchDecoration:
+                                              InputDecoration(
                                             contentPadding:
                                                 EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                            focusedBorder:
-                                                const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Colors.grey)),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                            disabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
+                                                    horizontal: 10,
+                                                    vertical: 10),
+                                            border: OutlineInputBorder(),
                                           ),
                                         ),
+                                        onChanged: (item) {
+                                          setState(() {
+                                            selectedpoLine = item;
+                                          });
+                                        },
                                       ),
-                                    ],
+                                    ),
+                                  ]),
+
+                                  const SizedBox(height: 10),
+
+                                  AppUtils.buildNormalText(text: "Total"),
+                                  TextFormField(
+                                    readOnly: true,
+                                    controller: TextEditingController(
+                                      text: selectedPendingItems[index]
+                                          .total
+                                          .toStringAsFixed(2),
+                                    ),
+                                    decoration: InputDecoration(
+                                      filled: true,
+                                      fillColor: Colors.grey.shade200,
+                                      border: const OutlineInputBorder(),
+                                    ),
                                   ),
-                                  SizedBox(height: 5),
-                                  Row(
-                                    children: [
+
+                                  // 🔽 LME-Specific Section
+                                  if (isLME) ...[
+                                    const SizedBox(height: 10),
+                                    Row(children: [
                                       Expanded(
-                                        flex: 4,
-                                        child: AppUtils.buildNormalText(
-                                            text: "CntrlPrice"),
-                                      ),
-                                      const SizedBox(width: 5),
+                                          flex: 3,
+                                          child: AppUtils.buildNormalText(
+                                              text: "LME Level %")),
                                       Expanded(
-                                        flex: 3,
-                                        child: AppUtils.buildNormalText(
-                                            text: "LME level %"),
-                                      ),
-                                      Expanded(
-                                        flex: 3,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Contrl %"),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 4,
-                                        child: TextFormField(
-                                          readOnly: true,
-                                          initialValue:
-                                              selectedPendingItems[index]
-                                                  .controlPrice
-                                                  .toString(),
-                                          onChanged: (value) => {
-                                            selectedPendingItems[index]
-                                                .controlPercentage = value
-                                          },
-                                          decoration: InputDecoration(
-                                            filled: true,
-                                            fillColor: Colors.grey.shade200,
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                            focusedBorder:
-                                                const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Colors.grey)),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                            disabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 5),
+                                          flex: 3,
+                                          child: AppUtils.buildNormalText(
+                                              text: "Control %")),
+                                    ]),
+                                    const SizedBox(height: 5),
+                                    Row(children: [
                                       Expanded(
                                         flex: 3,
                                         child: TextFormField(
@@ -1277,35 +1234,16 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                                               selectedPendingItems[index]
                                                   .lMELevelFormula
                                                   .toString(),
-                                          onChanged: (value) => {
-                                            // Update the quantity in the item
+                                          onChanged: (value) {
                                             selectedPendingItems[index]
                                                     .lMELevelFormula =
-                                                double.tryParse(value) ?? 0.0
+                                                double.tryParse(value) ?? 0.0;
                                           },
-                                          decoration: InputDecoration(
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                            focusedBorder:
-                                                const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Colors.grey)),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                            disabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                          ),
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder()),
                                         ),
                                       ),
-                                      SizedBox(width: 5),
+                                      const SizedBox(width: 5),
                                       Expanded(
                                         flex: 3,
                                         child: TextFormField(
@@ -1314,560 +1252,122 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                                               selectedPendingItems[index]
                                                   .controlPercentage
                                                   .toString(),
-                                          onChanged: (value) => {
-                                            // Update the quantity in the item
-                                            selectedPendingItems[index]
-                                                .controlPercentage = value
-                                          },
                                           decoration: InputDecoration(
                                             filled: true,
                                             fillColor: Colors.grey.shade200,
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                            focusedBorder:
-                                                const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Colors.grey)),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                            disabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.grey, width: 1),
-                                            ),
+                                            border: const OutlineInputBorder(),
                                           ),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
-                                  Row(
-                                    children: [
+                                    ]),
+                                    const SizedBox(height: 10),
+                                    Row(children: [
                                       Expanded(
-                                        flex: 4,
-                                        child: AppUtils.buildNormalText(
-                                            text: "LME Amnt"),
-                                      ),
-                                      const SizedBox(width: 5),
+                                          flex: 4,
+                                          child: AppUtils.buildNormalText(
+                                              text: "LME Amount")),
                                       Expanded(
-                                        flex: 3,
-                                        child: AppUtils.buildNormalText(
-                                            text: "LME Fix Date"),
-                                      ),
+                                          flex: 3,
+                                          child: AppUtils.buildNormalText(
+                                              text: "LME Fix Date")),
                                       Expanded(
-                                        flex: 3,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Contango %"),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Row(
-                                    children: [
+                                          flex: 3,
+                                          child: AppUtils.buildNormalText(
+                                              text: "Contango Amt")),
+                                    ]),
+                                    const SizedBox(height: 5),
+                                    Row(children: [
                                       Expanded(
                                         flex: 4,
                                         child: TextFormField(
-                                          readOnly: false,
                                           initialValue:
                                               selectedPendingItems[index]
                                                   .lMEAmount
                                                   .toString(),
-                                          onChanged: (value) => {
+                                          onChanged: (value) {
                                             selectedPendingItems[index]
-                                                .lMEAmount = double.parse(value)
+                                                    .lMEAmount =
+                                                double.tryParse(value) ?? 0.0;
                                           },
-                                          decoration: InputDecoration(
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                            focusedBorder:
-                                                const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Colors.grey)),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                            disabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                          ),
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder()),
                                         ),
                                       ),
-                                      SizedBox(width: 5),
+                                      const SizedBox(width: 5),
                                       Expanded(
                                         flex: 3,
                                         child: TextFormField(
                                           readOnly: true,
-                                          onTap: () {
-                                            _selectDate(index);
-                                          },
                                           controller: TextEditingController(
                                             text: selectedPendingItems[index]
                                                     .lMEFixationDate ??
                                                 '',
                                           ),
-                                          decoration: InputDecoration(
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                            focusedBorder:
-                                                const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Colors.grey)),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                            disabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                          ),
+                                          onTap: () => _selectDate(index),
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder()),
                                         ),
                                       ),
-                                      SizedBox(width: 5),
+                                      const SizedBox(width: 5),
                                       Expanded(
                                         flex: 3,
                                         child: TextFormField(
-                                          readOnly: false,
                                           initialValue:
                                               selectedPendingItems[index]
                                                   .contango
                                                   .toString(),
-                                          onChanged: (value) => {
-                                            // Update the quantity in the item
+                                          onChanged: (value) {
                                             selectedPendingItems[index]
-                                                .contango = int.parse(value)
+                                                    .contango =
+                                                int.tryParse(value) ?? 0;
                                           },
-                                          decoration: InputDecoration(
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                            focusedBorder:
-                                                const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Colors.grey)),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                            disabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.grey, width: 1),
-                                            ),
-                                          ),
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder()),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 4,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Heading Required"),
+                                    ]),
+                                    const SizedBox(height: 10),
+                                    AppUtils.buildNormalText(
+                                        text: "Hedging Required"),
+                                    DropdownSearch<MapEntry<String, String>>(
+                                      selectedItem:
+                                          headingType.entries.firstWhere(
+                                        (entry) =>
+                                            entry.key.toUpperCase() ==
+                                            (selectedPendingItems[index]
+                                                        .hedgingRequired ??
+                                                    '')
+                                                .toUpperCase(),
+                                        orElse: () => const MapEntry("N", "No"),
                                       ),
-                                      const SizedBox(width: 5),
-                                      Expanded(
-                                        flex: 3,
-                                        child: AppUtils.buildNormalText(
-                                            text: "PO Num"),
-                                      ),
-                                      Expanded(
-                                        flex: 3,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Po Entry"),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 4,
-                                        child: DropdownSearch<
-                                            MapEntry<String, String>>(
-                                          enabled: true,
-                                          selectedItem:
-                                              headingType.entries.firstWhere(
-                                            (entry) =>
-                                                entry.key.toUpperCase() ==
-                                                (selectedPendingItems[index]
-                                                            .hedgingRequired ??
-                                                        '')
-                                                    .toUpperCase(),
-                                            orElse: () =>
-                                                const MapEntry("N", "No"),
-                                          ),
-                                          items: headingType.entries.toList(),
-                                          itemAsString: (entry) => entry.value,
-                                          onChanged: (entry) {
-                                            if (entry != null) {
-                                              setState(() {
-                                                selecteddheading = entry;
-                                                // Update the invoice type in the item
-                                                selectedPendingItems[index]
-                                                        .hedgingRequired =
-                                                    entry.key;
-                                              });
-                                            }
-                                          },
-                                          popupProps: PopupProps.menu(
-                                              showSearchBox: true),
-                                          dropdownDecoratorProps:
-                                              DropDownDecoratorProps(
-                                            dropdownSearchDecoration:
-                                                InputDecoration(
-                                              contentPadding:
-                                                  EdgeInsets.symmetric(
-                                                      horizontal: 10,
-                                                      vertical: 10),
-                                              border: OutlineInputBorder(),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 5),
-                                      Expanded(
-                                        flex: 3,
-                                        child: DropdownSearch<PoModel>(
-                                          key: poKey,
-                                          popupProps: PopupProps.menu(
-                                            showSearchBox: true,
-                                            interceptCallBacks:
-                                                true, //important line
-                                            itemBuilder:
-                                                (ctx, item, isSelected) {
-                                              return ListTile(
-                                                  selected: isSelected,
-                                                  title: Text(
-                                                    item.poNumber.toString(),
-                                                    style: TextStyle(
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                  onTap: () {
-                                                    poKey.currentState
-                                                        ?.popupValidate([item]);
-                                                    // getwaybridgeCode =
-                                                    //     item.poEntry.toString();
-                                                    // getwaybridgeName =
-                                                    //     item.value.toString();
-                                                    selectedPendingItems[index]
-                                                            .poNumber =
-                                                        item.poNumber
-                                                            .toString();
-                                                    selectedPendingItems[index]
-                                                            .pOEntry =
-                                                        item.poEntry.toString();
-                                                    setState(() {});
-                                                  });
-                                            },
-                                          ),
-                                          asyncItems: (String filter) =>
-                                              ApiService.getpolists(
-                                            Prefs.getDBName('DBName'),
-                                            Prefs.getBranchID('BranchID'),
-                                            getsupplierId,
-                                            filter: filter,
-                                          ),
-                                          itemAsString: (PoModel item) =>
-                                              item.poNumber.toString(),
-                                          dropdownDecoratorProps:
-                                              DropDownDecoratorProps(
-                                            dropdownSearchDecoration:
-                                                InputDecoration(
-                                              contentPadding:
-                                                  EdgeInsets.fromLTRB(
-                                                      5.0, 10, 5.0, 2),
-                                              hintText: '',
-                                              enabledBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(1),
-                                                borderSide: const BorderSide(
-                                                    color: Colors.grey,
-                                                    width: 1),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(1),
-                                                borderSide: const BorderSide(
-                                                    color: Colors.grey,
-                                                    width: 1),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 5),
-                                      Expanded(
-                                        flex: 3,
-                                        child: TextFormField(
-                                          readOnly: true,
-                                          initialValue:
-                                              selectedPendingItems[index]
-                                                  .pOEntry
-                                                  .toString(),
-                                          onChanged: (value) => {
-                                            // Update the quantity in the item
+                                      items: headingType.entries.toList(),
+                                      itemAsString: (entry) => entry.value,
+                                      onChanged: (entry) {
+                                        if (entry != null) {
+                                          setState(() {
                                             selectedPendingItems[index]
-                                                .pOEntry = int.parse(value)
-                                          },
-                                          decoration: InputDecoration(
-                                            filled: true,
-                                            fillColor: Colors.grey.shade200,
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                            focusedBorder:
-                                                const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Colors.grey)),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                            disabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.grey, width: 1),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                                .hedgingRequired = entry.key;
+                                          });
+                                        }
+                                      },
+                                    )
+                                  ],
+                                  AppUtils.buildNormalText(
+                                      text: "Purchase Remarks"),
+                                  const SizedBox(height: 5),
+                                  TextFormField(
+                                    initialValue: selectedPendingItems[index]
+                                        .purchaseRemarks
+                                        .toString(),
+                                    onChanged: (value) {
+                                      selectedPendingItems[index]
+                                          .purchaseRemarks = value;
+                                    },
+                                    decoration: const InputDecoration(
+                                        border: OutlineInputBorder()),
                                   ),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 4,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Po Line"),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Expanded(
-                                        flex: 3,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Weight Ticket"),
-                                      ),
-                                      Expanded(
-                                        flex: 3,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Pur.Remarks"),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                          flex: 4,
-                                          child: DropdownSearch<PoLineModel>(
-                                            key: poLineKey,
-                                            popupProps: PopupProps.menu(
-                                              showSearchBox: true,
-                                              interceptCallBacks:
-                                                  true, //important line
-                                              itemBuilder:
-                                                  (ctx, item, isSelected) {
-                                                return ListTile(
-                                                    selected: isSelected,
-                                                    title: Text(
-                                                      item.value.toString(),
-                                                      style: TextStyle(
-                                                        color: Colors.black,
-                                                      ),
-                                                    ),
-                                                    onTap: () {
-                                                      poLineKey.currentState
-                                                          ?.popupValidate(
-                                                              [item]);
 
-                                                      setState(() {});
-                                                    });
-                                              },
-                                            ),
-                                            asyncItems: (String filter) =>
-                                                ApiService.getpolinenumber(
-                                                    Prefs.getDBName('DBName'),
-                                                    Prefs.getBranchID(
-                                                        'BranchID'),
-                                                    getsupplierId,
-                                                    filter: filter,
-                                                    selectedPendingItems[index]
-                                                        .pOEntry),
-                                            itemAsString: (PoLineModel item) =>
-                                                item.value.toString(),
-                                            dropdownDecoratorProps:
-                                                DropDownDecoratorProps(
-                                              dropdownSearchDecoration:
-                                                  InputDecoration(
-                                                contentPadding:
-                                                    EdgeInsets.fromLTRB(
-                                                        5.0, 10, 5.0, 2),
-                                                hintText: '',
-                                                enabledBorder:
-                                                    OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(1),
-                                                  borderSide: const BorderSide(
-                                                      color: Colors.grey,
-                                                      width: 1),
-                                                ),
-                                                focusedBorder:
-                                                    OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(1),
-                                                  borderSide: const BorderSide(
-                                                      color: Colors.grey,
-                                                      width: 1),
-                                                ),
-                                              ),
-                                            ),
-                                          )),
-                                      SizedBox(width: 5),
-                                      Expanded(
-                                        flex: 3,
-                                        child: TextFormField(
-                                          readOnly: true,
-                                          initialValue:
-                                              selectedPendingItems[index]
-                                                  .ticketNo
-                                                  .toString(),
-                                          onChanged: (value) => {
-                                            // Update the quantity in the item
-                                            selectedPendingItems[index]
-                                                .ticketNo = value
-                                          },
-                                          decoration: InputDecoration(
-                                            filled: true,
-                                            fillColor: Colors.grey.shade200,
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                            focusedBorder:
-                                                const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Colors.grey)),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                            disabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.grey, width: 1),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 5),
-                                      Expanded(
-                                        flex: 3,
-                                        child: TextFormField(
-                                          readOnly: false,
-                                          initialValue:
-                                              selectedPendingItems[index]
-                                                  .purchaseRemarks
-                                                  .toString(),
-                                          onChanged: (value) => {
-                                            // Update the quantity in the item
-                                            selectedPendingItems[index]
-                                                .purchaseRemarks = value
-                                          },
-                                          decoration: InputDecoration(
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                            focusedBorder:
-                                                const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Colors.grey)),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                            disabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.grey, width: 1),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: 5,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 5,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Total"),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 5,
-                                        child: TextFormField(
-                                          readOnly: true,
-                                          controller: TextEditingController(
-                                            text: selectedPendingItems[index]
-                                                .total
-                                                .toStringAsFixed(2),
-                                          ),
-                                          decoration: InputDecoration(
-                                            filled: true,
-                                            fillColor: Colors.grey.shade200,
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                            focusedBorder:
-                                                const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Colors.grey)),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                            disabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.grey, width: 1),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  )
+                                  const SizedBox(height: 10),
                                 ],
                               ),
                             ),
@@ -2007,11 +1507,13 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
     apiService
         .postrequestunloading(
             map,
-            "",
+            _images,
             dataToSend,
             Prefs.getDBName('DBName').toString(),
             Prefs.getBranchID('BranchID'),
-            "yardunloading")
+            "yardunloading",
+            _removedURL,
+            selectedImageList)
         .then((response) async {
       setState(() {
         loading = false;
@@ -2143,6 +1645,14 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
             getsalespersonCode = editYarnList[0].slpCode.toString();
             getsalespersonName = editYarnList[0].slpName.toString();
 
+            selectedpoLine = PoLineModel(
+                id: editYarnList[0].poLine ?? 0,
+                value: editYarnList[0].poLine ?? 0);
+
+            selectedPo = PoModel(
+                poEntry: editYarnList[0].pOEntry.toString(),
+                poNumber: editYarnList[0].pONum.toString(),
+                poLine: editYarnList[0].poLine ?? 0);
             selectedSales = SalesPersonModel(
                 id: getsalespersonCode.toString(), value: getsalespersonName);
 
@@ -2166,6 +1676,7 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                     itemCode: item.itemCode,
                     itemName: item.itemName,
                     warehouse: item.warehouse,
+                    warehousename: item.warehousename,
                     quantity: item.quantity,
                     unitPrice: item.unitPrice,
                     controlPrice: item.controlPirce,

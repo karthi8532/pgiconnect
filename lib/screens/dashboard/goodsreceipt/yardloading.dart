@@ -51,7 +51,6 @@ class _YardLoadingState extends State<YardLoading> {
   String getLogisticID = "";
 
   final Set<File> _selectedImages = {};
-  final int maxImages = 20;
 
   final ImagePicker _picker = ImagePicker();
   bool loading = false;
@@ -103,6 +102,7 @@ class _YardLoadingState extends State<YardLoading> {
   ];
   @override
   void initState() {
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
     if (widget.status == "Completed") {
       setState(() {
         value1 = true;
@@ -503,40 +503,39 @@ class _YardLoadingState extends State<YardLoading> {
                   ],
                 );
               }),
-              if (_images.length < maxImages)
-                GestureDetector(
-                  onTap: () {
-                    AppUtils.showBottomCupertinoDialog(
-                      context,
-                      title: "Attach Image",
-                      btn1function: () {
-                        AppUtils.pop(context);
-                        _cameraImage();
-                      },
-                      btn2function: () {
-                        AppUtils.pop(context);
-                        _pickImage();
-                      },
-                    );
-                  },
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.white,
-                    ),
-                    child: const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add, size: 30, color: Colors.black54),
-                        SizedBox(height: 5),
-                        Text("Upload", style: TextStyle(color: Colors.black54)),
-                      ],
-                    ),
+              GestureDetector(
+                onTap: () {
+                  AppUtils.showBottomCupertinoDialog(
+                    context,
+                    title: "Attach Image",
+                    btn1function: () {
+                      AppUtils.pop(context);
+                      _cameraImage();
+                    },
+                    btn2function: () {
+                      AppUtils.pop(context);
+                      _pickImage();
+                    },
+                  );
+                },
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white,
+                  ),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add, size: 30, color: Colors.black54),
+                      SizedBox(height: 5),
+                      Text("Upload", style: TextStyle(color: Colors.black54)),
+                    ],
                   ),
                 ),
+              ),
             ],
           ),
         ],
@@ -596,17 +595,6 @@ class _YardLoadingState extends State<YardLoading> {
   }
 
   Future<void> _cameraImage() async {
-    if (_images.length >= maxImages) {
-      AppUtils.showSingleDialogPopup(
-        context,
-        "Maximum $maxImages attachments allowed",
-        "Ok",
-        () => Navigator.pop(context),
-        null,
-      );
-      return;
-    }
-
     final XFile? image = await _picker.pickImage(source: ImageSource.camera);
     if (image != null) {
       setState(() {
@@ -633,11 +621,11 @@ class _YardLoadingState extends State<YardLoading> {
         SizedBox(
           height: 2,
         ),
-        _buildTextField(
-            "Customer", widget.data['customerName'].toString(), Icons.person),
-        SizedBox(
-          height: 2,
-        ),
+        // _buildTextField(
+        //     "Customer", widget.data['customerName'].toString(), Icons.person),
+        // SizedBox(
+        //   height: 2,
+        // ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1268,9 +1256,14 @@ class _YardLoadingState extends State<YardLoading> {
               items: items, getLogisticNo: getLogisticID)),
     );
     if (result != null) {
+      //FocusScope.of(context).unfocus();
       setState(() {
         items = result; // Update with new list
         _calculateTotals();
+      });
+      // Hide keyboard after the rebuild
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        FocusScope.of(context).unfocus();
       });
     }
   }
@@ -1299,6 +1292,9 @@ class _YardLoadingState extends State<YardLoading> {
       'actualQtyLoaded': "0",
       'whoSealedtheContainer': sealedByNameController.text,
       'clearancegivenby': clearanceByController.text,
+      'sealNo': sealNocontroller.text,
+      'vechicleNo': vehicleNoController.text,
+      'weighNo': weightnocontroller.text
     };
     List<Map<String, dynamic>> jsonList = [];
     if (items.isNotEmpty) {
@@ -1395,6 +1391,9 @@ class _YardLoadingState extends State<YardLoading> {
       'actualQtyLoaded': actualQtyLoadedContainer.text,
       'whoSealedtheContainer': sealedByNameController.text,
       'clearancegivenby': clearanceByController.text,
+      'sealNo': sealNocontroller.text,
+      'vechicleNo': vehicleNoController.text,
+      'weighNo': weightnocontroller.text
     };
 
     apiService
@@ -1514,7 +1513,18 @@ class _YardLoadingState extends State<YardLoading> {
                 ));
               }
             }
-
+            superVisorCode = model.supervisorCode.toString();
+            superVisorName = model.supervisorName.toString();
+            selectedSupervisor =
+                SuperVisorModel(id: superVisorCode, value: superVisorName);
+            dateofLoadingContainer.text = model.dateofLoading.toString();
+            sealedByNameController.text =
+                model.whoSealedtheContainer.toString();
+            actualQtyLoadedContainer.text = model.actualQtyLoaded.toString();
+            clearanceByController.text = model.clearancegivenby.toString();
+            weightnocontroller.text = model.weighNo.toString();
+            vehicleNoController.text = model.vehicleNo.toString();
+            sealNocontroller.text = model.sealNo.toString();
             // 🖼️ Parse attachments
             if (model.attachmentPath.isNotEmpty) {
               for (var editimages in model.attachmentPath) {

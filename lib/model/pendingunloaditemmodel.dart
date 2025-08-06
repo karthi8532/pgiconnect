@@ -8,6 +8,7 @@ class PendingItem {
   String itemCode;
   String itemName;
   String warehouse;
+  String warehousename;
   double quantity;
   double unitPrice;
   double controlPrice;
@@ -36,6 +37,7 @@ class PendingItem {
       required this.itemCode,
       required this.itemName,
       required this.warehouse,
+      required this.warehousename,
       required this.quantity,
       required this.unitPrice,
       required this.controlPrice,
@@ -78,6 +80,7 @@ class PendingItem {
       itemCode: json['itemCode'] ?? '',
       itemName: json['itemName'] ?? '',
       warehouse: json['warehouse'] ?? '',
+      warehousename: json['warehouseName'] ?? '',
       quantity: parseDouble(json['quantity']),
       unitPrice: parseDouble(json['unitPrice']),
       controlPrice: parseDouble(json['controlPirce']),
@@ -109,6 +112,7 @@ class PendingItem {
       'itemCode': itemCode,
       'itemName': itemName,
       'warehouse': warehouse,
+      'warehouseName': warehousename,
       'quantity': quantity,
       'unitPrice': unitPrice,
       'controlPirce': controlPrice,

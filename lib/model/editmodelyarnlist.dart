@@ -8,6 +8,15 @@ class YarnEditListModel {
   String? customerCode;
   String? customerName;
   String? noOfContainer;
+  String? supervisorCode;
+  String? supervisorName;
+  String? dateofLoading;
+  double? actualQtyLoaded;
+  String? whoSealedtheContainer;
+  String? clearancegivenby;
+  String? weighNo;
+  String? vehicleNo;
+  String? sealNo;
   List<Item> items;
   List<AttachmentPath> attachmentPath;
 
@@ -21,6 +30,15 @@ class YarnEditListModel {
     required this.customerCode,
     required this.customerName,
     required this.noOfContainer,
+    required this.supervisorCode,
+    required this.supervisorName,
+    required this.dateofLoading,
+    required this.actualQtyLoaded,
+    required this.clearancegivenby,
+    required this.whoSealedtheContainer,
+    required this.vehicleNo,
+    required this.weighNo,
+    required this.sealNo,
     required this.items,
     required this.attachmentPath,
   });
@@ -36,6 +54,17 @@ class YarnEditListModel {
       customerCode: json['customerCode'],
       customerName: json['customerName'],
       noOfContainer: json['noOfContainer'] ?? "0",
+      supervisorCode: json['supervisorCode'] ?? "",
+      supervisorName: json['supervisorName'] ?? "",
+      dateofLoading: json['dateofLoading'] ?? "",
+      actualQtyLoaded: json['actualQtyLoaded'] is int
+          ? (json['actualQtyLoaded'] as int).toDouble()
+          : json['actualQtyLoaded'],
+      clearancegivenby: json['clearancegivenby'] ?? "",
+      whoSealedtheContainer: json['whoSealedtheContainer'] ?? "Nil",
+      weighNo: json['weighNo'] ?? "",
+      vehicleNo: json['vechicleNo'] ?? "",
+      sealNo: json['sealNo'] ?? "",
       items: List<Item>.from(json['items'].map((x) => Item.fromJson(x))),
       attachmentPath: (json['attachmentPath'] as List?)
               ?.map((x) => AttachmentPath.fromJson(x))
@@ -55,6 +84,15 @@ class YarnEditListModel {
         'customerName': customerName,
         'noOfContainer': noOfContainer,
         'items': items.map((x) => x.toJson()).toList(),
+        'supervisorCode': supervisorCode,
+        'supervisorName': supervisorName,
+        'dateofLoading': dateofLoading,
+        'actualQtyLoaded': actualQtyLoaded,
+        'clearancegivenby': clearancegivenby,
+        'whoSealedtheContainer': whoSealedtheContainer,
+        'weighNo': weighNo,
+        'vechicleNo': vehicleNo,
+        'sealNo': sealNo
       };
 }
 
@@ -68,7 +106,6 @@ class Item {
   double? grossWeight;
   double? netWeight;
   double? finalDoQty;
-
   int? baseEntry;
   int? baseLine;
   String? baseType;

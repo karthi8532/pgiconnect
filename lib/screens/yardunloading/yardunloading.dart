@@ -6,6 +6,7 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:pgiconnect/const/pref.dart';
 import 'package:pgiconnect/data/apiservice.dart';
@@ -112,6 +113,14 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
   WeighLocationModel? selectedWaybridge;
   WeighTicketNumberModel? selectedWayTicketno;
 
+  final List<File> _images = [];
+  final List<File> _editimages = [];
+  final List<String> _removedURL = [];
+
+  final Set<File> _selectedImages = {};
+
+  final ImagePicker _picker = ImagePicker();
+
   bool value1 = false;
   String getGrnCode = "";
   MapEntry<String, String>? selectedGrn;
@@ -160,7 +169,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-        length: 2,
+        length: 3,
         child: Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
@@ -226,6 +235,9 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                         Tab(
                           text: "Item Details",
                         ),
+                        Tab(
+                          text: "Attachment",
+                        )
                       ],
                     ),
                     Expanded(
@@ -234,6 +246,14 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                         children: [
                           headerwidgets(),
                           itemsswidgets(),
+                          Column(
+                            children: [
+                              widget.status == "Open"
+                                  ? _buildUploadSection()
+                                  : _buildUploadSection(),
+                              _buildEditimageUploadSection()
+                            ],
+                          )
                         ],
                       ),
                     )
@@ -397,6 +417,110 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                 dropdownSearchDecoration: InputDecoration(
                   contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
                   hintText: 'Weigh Ticket No * ',
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(1),
+                    borderSide: const BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(1),
+                    borderSide: const BorderSide(color: Colors.grey, width: 1),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 5,
+            ),
+            SizedBox(height: 10),
+            widget.status == "Close"
+                ? Container()
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton(
+                          onPressed: () {
+                            if (getwaybridgeCode.isEmpty) {
+                              AppUtils.showSingleDialogPopup(
+                                  context,
+                                  "Please Enter Weight Location",
+                                  "Ok",
+                                  exitpopup,
+                                  null);
+                            } /*else if (selectedSupplier!.id!.isEmpty) {
+                              AppUtils.showSingleDialogPopup(
+                                  context,
+                                  "Please Select Supplier",
+                                  "Ok",
+                                  exitpopup,
+                                  null);
+                            } */
+                            else if (pickupNoController.text.isEmpty) {
+                              AppUtils.showSingleDialogPopup(
+                                  context,
+                                  "Please Enter Pickup No",
+                                  "Ok",
+                                  exitpopup,
+                                  null);
+                            } else if (getTicketNo.isEmpty) {
+                              AppUtils.showSingleDialogPopup(
+                                  context,
+                                  "Please Select Ticket No",
+                                  "Ok",
+                                  exitpopup,
+                                  null);
+                            } else {
+                              callgetitemlist(context);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)),
+                            elevation: 4.0,
+                          ),
+                          child: Text(
+                            'Select Ticket',
+                            style: TextStyle(color: Colors.white),
+                          )),
+                    ],
+                  ),
+            AppUtils.buildNormalText(text: "Supplier Details"),
+            SizedBox(height: 5),
+            DropdownSearch<SuppplierModel>(
+              selectedItem: selectedSupplier,
+              key: supplierKey,
+              popupProps: PopupProps.menu(
+                showSearchBox: true,
+                interceptCallBacks: true, //important line
+                itemBuilder: (ctx, item, isSelected) {
+                  return ListTile(
+                      selected: isSelected,
+                      title: Text(
+                        item.value.toString(),
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
+                      ),
+                      onTap: () {
+                        supplierKey.currentState?.popupValidate([item]);
+                        getsupplierId = item.id.toString();
+                        getsupplierName = item.value.toString();
+                        selectedSupplier = SuppplierModel(
+                            id: getsupplierId, value: getsupplierName);
+                        setState(() {});
+                      });
+                },
+              ),
+              asyncItems: (String filter) => ApiService.getsupplierlist(
+                Prefs.getDBName('DBName'),
+                Prefs.getBranchID('BranchID'),
+                filter: filter,
+              ),
+              itemAsString: (SuppplierModel item) => item.value.toString(),
+              dropdownDecoratorProps: DropDownDecoratorProps(
+                dropdownSearchDecoration: InputDecoration(
+                  contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+                  hintText: 'Supplier * ',
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(1),
                     borderSide: const BorderSide(color: Colors.grey, width: 1),
@@ -580,7 +704,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
             SizedBox(
               height: 5,
             ),
-            AppUtils.buildNormalText(text: "Sales person"),
+            AppUtils.buildNormalText(text: "Purchase Trader"),
             SizedBox(height: 5),
             DropdownSearch<SalesPersonModel>(
               selectedItem: selectedSales,
@@ -629,91 +753,167 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
             SizedBox(
               height: 10,
             ),
-            AppUtils.buildNormalText(text: "Supplier Details"),
-            SizedBox(height: 5),
-            DropdownSearch<SuppplierModel>(
-              selectedItem: selectedSupplier,
-              key: supplierKey,
-              popupProps: PopupProps.menu(
-                showSearchBox: true,
-                interceptCallBacks: true, //important line
-                itemBuilder: (ctx, item, isSelected) {
-                  return ListTile(
-                      selected: isSelected,
-                      title: Text(
-                        item.value.toString(),
-                        style: TextStyle(
-                          color: Colors.black,
-                        ),
-                      ),
-                      onTap: () {
-                        supplierKey.currentState?.popupValidate([item]);
-                        getsupplierId = item.id.toString();
-                        getsupplierName = item.value.toString();
-                        setState(() {});
-                      });
-                },
-              ),
-              asyncItems: (String filter) => ApiService.getsupplierlist(
-                Prefs.getDBName('DBName'),
-                Prefs.getBranchID('BranchID'),
-                filter: filter,
-              ),
-              itemAsString: (SuppplierModel item) => item.value.toString(),
-              dropdownDecoratorProps: DropDownDecoratorProps(
-                dropdownSearchDecoration: InputDecoration(
-                  contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-                  hintText: 'Supplier * ',
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(1),
-                    borderSide: const BorderSide(color: Colors.grey, width: 1),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(1),
-                    borderSide: const BorderSide(color: Colors.grey, width: 1),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-            widget.status == "Close"
-                ? Container()
-                : ElevatedButton(
-                    onPressed: () {
-                      if (getwaybridgeCode.isEmpty) {
-                        AppUtils.showSingleDialogPopup(
-                            context,
-                            "Please Enter Weight Location",
-                            "Ok",
-                            exitpopup,
-                            null);
-                      } else if (selectedSupplier!.id!.isEmpty) {
-                        AppUtils.showSingleDialogPopup(context,
-                            "Please Select Supplier", "Ok", exitpopup, null);
-                      } else if (pickupNoController.text.isEmpty) {
-                        AppUtils.showSingleDialogPopup(context,
-                            "Please Enter Pickup No", "Ok", exitpopup, null);
-                      } else if (getTicketNo.isEmpty) {
-                        AppUtils.showSingleDialogPopup(context,
-                            "Please Select Ticket No", "Ok", exitpopup, null);
-                      } else {
-                        callgetitemlist(context);
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
-                      elevation: 4.0,
-                    ),
-                    child: Text(
-                      'Select Ticket',
-                      style: TextStyle(color: Colors.white),
-                    )),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildUploadSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Attachment",
+            style: TextStyle(fontWeight: FontWeight.normal, fontSize: 14),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              ..._images.map((file) {
+                return Stack(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(8),
+                        image: DecorationImage(
+                          image: FileImage(file),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: -8,
+                      right: -8,
+                      child: IconButton(
+                        icon: const Icon(Icons.cancel,
+                            color: Colors.red, size: 20),
+                        onPressed: () {
+                          setState(() {
+                            _selectedImages.remove(file);
+                            _images.remove(file);
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              }),
+              GestureDetector(
+                onTap: () {
+                  AppUtils.showBottomCupertinoDialog(
+                    context,
+                    title: "Attach Image",
+                    btn1function: () {
+                      AppUtils.pop(context);
+                      _cameraImage();
+                    },
+                    btn2function: () {
+                      AppUtils.pop(context);
+                      _pickImage();
+                    },
+                  );
+                },
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white,
+                  ),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add, size: 30, color: Colors.black54),
+                      SizedBox(height: 5),
+                      Text("Upload", style: TextStyle(color: Colors.black54)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEditimageUploadSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              ..._editimages.map((file) {
+                return Stack(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(8),
+                        image: DecorationImage(
+                          image: NetworkImage(file.path
+                              .toString()
+                              .replaceAll('"', '')), //double quoates remove
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: -8,
+                      right: -8,
+                      child: IconButton(
+                        icon: Icon(Icons.cancel, color: Colors.red, size: 20),
+                        onPressed: () {
+                          setState(() {
+                            _selectedImages.remove(file);
+                            _removedURL.add(file.path);
+                            _editimages.remove(file);
+                          });
+                        },
+                      ),
+                    )
+                  ],
+                );
+              }),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _cameraImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    if (image != null) {
+      setState(() {
+        _images.add(File(image.path));
+      });
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final List<XFile> selectedImages = await _picker.pickMultiImage();
+
+    if (selectedImages.isNotEmpty) {
+      setState(() {
+        _images.addAll(selectedImages.map((xfile) => File(xfile.path)));
+      });
+    }
   }
 
   void getheader() async {
@@ -809,19 +1009,20 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
       context,
       CupertinoPageRoute(
         builder: (context) => PendingItemScreen(
-            getDBName: Prefs.getDBName('DBName') ?? '',
-            getBranchID: Prefs.getBranchID('BranchID').toString(),
-            // fromDate: widget.status == "Open"
-            //     ? alterweightfromdatecontroller.text
-            //     : convertDate(alterweightfromdatecontroller.text),
-            // toDate: widget.status == "Open"
-            //     ? alterweighttodatecontroller.text
-            //     : convertDate(alterweighttodatecontroller.text),
-            supplierId: getsupplierId,
-            supplierName: getsupplierName,
-            pickupNo: pickupNoController.text,
-            location: getwaybridgeCode,
-            ticketNo: getTicketNo),
+          getDBName: Prefs.getDBName('DBName') ?? '',
+          getBranchID: Prefs.getBranchID('BranchID').toString(),
+          // fromDate: widget.status == "Open"
+          //     ? alterweightfromdatecontroller.text
+          //     : convertDate(alterweightfromdatecontroller.text),
+          // toDate: widget.status == "Open"
+          //     ? alterweighttodatecontroller.text
+          //     : convertDate(alterweighttodatecontroller.text),
+          supplierId: getsupplierId,
+          supplierName: getsupplierName,
+          pickupNo: pickupNoController.text,
+          location: getwaybridgeCode,
+          ticketNo: getTicketNo,
+        ),
       ),
     );
 
@@ -836,6 +1037,10 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
 
           if (!isDuplicate) {
             selectedPendingItems.add(newItem);
+
+            final String whsCode = newItem.warehouse;
+            final String whsName = newItem.warehousename;
+            selectedWhs = WarehouseModel(id: whsCode, value: whsName);
           }
         }
       });
@@ -857,6 +1062,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
             itemCode: alterItemCode,
             itemName: alterItemName,
             warehouse: "",
+            warehousename: "",
             quantity: 1,
             unitPrice: 0,
             controlPrice: 0,
@@ -914,132 +1120,6 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: 10),
-          ExpansionTile(
-            backgroundColor: Colors.white30,
-            title: Text("Additem"),
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: DropdownSearch<NewItemModel>(
-                  key: selectItemkey,
-                  popupProps: PopupProps.menu(
-                    showSearchBox: true,
-                    interceptCallBacks: true, //important line
-                    itemBuilder: (ctx, item, isSelected) {
-                      return ListTile(
-                          selected: isSelected,
-                          title: Text(
-                            item.itemName.toString(),
-                            style: TextStyle(
-                              color: Colors.black,
-                            ),
-                          ),
-                          onTap: () {
-                            selectItemkey.currentState?.popupValidate([item]);
-                            alterItemCode = item.itemCode.toString();
-                            alterItemName = item.itemName.toString();
-                            setState(() {});
-                          });
-                    },
-                  ),
-                  asyncItems: (String filter) => ApiService.getnewItem(
-                    Prefs.getDBName('DBName'),
-                    Prefs.getBranchID('BranchID'),
-                    getTicketNo,
-                    filter: filter,
-                  ),
-                  itemAsString: (NewItemModel item) => item.itemName.toString(),
-                  dropdownDecoratorProps: DropDownDecoratorProps(
-                    dropdownSearchDecoration: InputDecoration(
-                      contentPadding: EdgeInsets.fromLTRB(5.0, 10, 5.0, 2),
-                      hintText: 'Item',
-                      label: Text("Item"),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(1),
-                        borderSide:
-                            const BorderSide(color: Colors.grey, width: 1),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(1),
-                        borderSide:
-                            const BorderSide(color: Colors.grey, width: 1),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 6,
-                      child: TextFormField(
-                        maxLines: 1,
-                        controller: qtycontroller,
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d*\.?\d{0,3}')),
-                        ],
-                        onChanged: (val) => {},
-                        decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 8),
-                          focusedBorder: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 1, color: Colors.grey)),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                color: Colors.black26, width: 1),
-                          ),
-                          hintText: "Qty",
-                          label: Text("Qty"),
-                          disabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                color: Colors.black26, width: 1),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Expanded(
-                        flex: 2,
-                        child: ElevatedButton(
-                            onPressed: () {
-                              if (alterItemCode.isEmpty) {
-                                AppUtils.showSingleDialogPopup(
-                                    context,
-                                    "Please Choose Item",
-                                    "OK",
-                                    onexitpopup,
-                                    null);
-                              } else if (qtycontroller.text.isEmpty) {
-                                AppUtils.showSingleDialogPopup(
-                                    context,
-                                    "Please Enter Qty",
-                                    "OK",
-                                    onexitpopup,
-                                    null);
-                              } else {
-                                addManualItem();
-                              }
-                            },
-                            child: Text("Add")))
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-            ],
-          ),
           selectedPendingItems.isNotEmpty
               ? ListView.builder(
                   shrinkWrap: true,
@@ -1372,6 +1452,135 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
               : Center(
                   child: Text("No Data!"),
                 ),
+          SizedBox(
+            height: 10,
+          ),
+          ExpansionTile(
+            backgroundColor: Colors.white30,
+            title: Text("ADD ITEM"),
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DropdownSearch<NewItemModel>(
+                  key: selectItemkey,
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                    interceptCallBacks: true, //important line
+                    itemBuilder: (ctx, item, isSelected) {
+                      return ListTile(
+                          selected: isSelected,
+                          title: Text(
+                            item.itemName.toString(),
+                            style: TextStyle(
+                              color: Colors.black,
+                            ),
+                          ),
+                          onTap: () {
+                            selectItemkey.currentState?.popupValidate([item]);
+                            alterItemCode = item.itemCode.toString();
+                            alterItemName = item.itemName.toString();
+                            setState(() {});
+                          });
+                    },
+                  ),
+                  asyncItems: (String filter) => ApiService.getnewItem(
+                    Prefs.getDBName('DBName'),
+                    Prefs.getBranchID('BranchID'),
+                    getTicketNo,
+                    filter: filter,
+                  ),
+                  itemAsString: (NewItemModel item) => item.itemName.toString(),
+                  dropdownDecoratorProps: DropDownDecoratorProps(
+                    dropdownSearchDecoration: InputDecoration(
+                      contentPadding: EdgeInsets.fromLTRB(5.0, 10, 5.0, 2),
+                      hintText: 'Item',
+                      label: Text("Item"),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(1),
+                        borderSide:
+                            const BorderSide(color: Colors.grey, width: 1),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(1),
+                        borderSide:
+                            const BorderSide(color: Colors.grey, width: 1),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 6,
+                      child: TextFormField(
+                        maxLines: 1,
+                        controller: qtycontroller,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d{0,3}')),
+                        ],
+                        onChanged: (val) => {},
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 8),
+                          focusedBorder: const OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(width: 1, color: Colors.grey)),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                                color: Colors.black26, width: 1),
+                          ),
+                          hintText: "Qty",
+                          label: Text("Qty"),
+                          disabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                                color: Colors.black26, width: 1),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                            onPressed: () {
+                              if (alterItemCode.isEmpty) {
+                                AppUtils.showSingleDialogPopup(
+                                    context,
+                                    "Please Choose Item",
+                                    "OK",
+                                    onexitpopup,
+                                    null);
+                              } else if (qtycontroller.text.isEmpty) {
+                                AppUtils.showSingleDialogPopup(
+                                    context,
+                                    "Please Enter Qty",
+                                    "OK",
+                                    onexitpopup,
+                                    null);
+                              } else {
+                                addManualItem();
+                              }
+                            },
+                            child: Text("Add")))
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -1428,7 +1637,13 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
     final map = <String, dynamic>{};
 
     List<Map<String, dynamic>> dataToSend = [];
+    final List<File> selectedImageList = _selectedImages.toList();
 
+    if (widget.status == "Pending") {
+      if (_editimages.isNotEmpty) {
+        _images.addAll(_editimages);
+      }
+    }
     dataToSend.clear();
     for (int i = 0; i < selectedPendingItems.length; i++) {
       dataToSend.add({
@@ -1452,7 +1667,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
         "lmeDate": "",
         "docType": selectedPendingItems[i].documentType,
         "wtsNo": "",
-        "weigNum": "",
+        "weigNum": selectedWayTicketno?.weighTicketNo ?? "",
         "poNum": "",
         "poEntry": "",
         "purRemark": "",
@@ -1472,7 +1687,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
     map['cardName'] = getsupplierName;
     map['wightFromDate'] = weightfromdatecontroller.text;
     map['wightToDate'] = weighttodatecontroller.text;
-    map['wightNos'] = "";
+    map['wightNos'] = selectedWayTicketno?.weighTicketNo ?? "";
     map['vehicleNo'] = pickupNoController.text;
     map['yard'] = getyardId;
     map['docDate'] = today;
@@ -1494,16 +1709,18 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
     map['weighLocation'] = getwaybridgeCode;
     map['whsCode'] = getwhsCode;
 
-    log((jsonEncode(dataToSend)));
+    //log((jsonEncode(dataToSend)));
 
     apiService
         .postrequestunloading(
             map,
-            "",
+            _images,
             dataToSend,
             Prefs.getDBName('DBName').toString(),
             Prefs.getBranchID('BranchID'),
-            "yardunloading")
+            "yardunloading",
+            _removedURL,
+            selectedImageList)
         .then((response) async {
       setState(() {
         loading = false;
@@ -1511,7 +1728,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
       if (response.statusCode == 200 || response.statusCode < 300) {
         String responseBody = await response.stream.bytesToString();
         Map<String, dynamic> jsonResponse = jsonDecode(responseBody);
-        print(jsonResponse['success'].toString() == "true");
+
         if (jsonResponse['success'].toString() == "true") {
           AppUtils.showSingleDialogPopup(context,
               jsonResponse['message'].toString(), "Ok", onrefresh, null);
@@ -1556,6 +1773,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
 
   void editUnloading() {
     editYarnList.clear();
+
     setState(() {
       loading = true;
     });
@@ -1640,6 +1858,10 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
 
             getwaybridgeCode = editYarnList[0].weighLocation.toString();
             getwaybridgeName = editYarnList[0].weighLocation.toString();
+
+            selectedWayTicketno = WeighTicketNumberModel(
+                weighTicketNo: editYarnList[0].wightNos.toString());
+
             selectedWaybridge = WeighLocationModel(
                 id: getwaybridgeCode, value: getwaybridgeName);
 
@@ -1660,6 +1882,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                     itemCode: item.itemCode,
                     itemName: item.itemName,
                     warehouse: item.warehouse,
+                    warehousename: item.warehouseName,
                     quantity: item.quantity,
                     unitPrice: item.unitPrice,
                     controlPrice: item.controlPirce,
@@ -1679,6 +1902,15 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                     ismanuall: false))
                 .toList();
             setState(() {});
+          }
+
+          if (editYarnList[0].attachmentPath.isNotEmpty) {
+            for (var editimages in editYarnList[0].attachmentPath) {
+              if ((editimages.filename ?? '').isNotEmpty &&
+                  (editimages.url ?? '').isNotEmpty) {
+                _editimages.add(File(editimages.url));
+              }
+            }
           }
         } else {
           AppUtils.showSingleDialogPopup(
