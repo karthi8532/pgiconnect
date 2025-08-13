@@ -194,17 +194,7 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                         DropdownSearch<ItemModel>(
                           key: itemkey,
                           popupProps: PopupProps.menu(
-                            // disabledItemFn: (item) {
-                            //   for (int s = 0; s < widget.items.length; s++) {
-                            //     if (widget.items[s].lineId ==
-                            //         item.yardloadinglineId) {
-                            //       return widget.items[s].lineId
-                            //           .toString()
-                            //           .startsWith(
-                            //               item.yardloadinglineId.toString());
-                            //     }
-                            //   }
-                            // },
+                            
                             showSearchBox: true,
                             interceptCallBacks: true, //important line
                             itemBuilder: (ctx, item, isSelected) {

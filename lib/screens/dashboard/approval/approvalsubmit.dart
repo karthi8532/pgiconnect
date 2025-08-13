@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pgiconnect/const/pref.dart';
 import 'package:pgiconnect/data/apiservice.dart';
 import 'package:pgiconnect/model/singleclaimmodel.dart';
@@ -43,6 +44,7 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
   bool loading = false;
   ApiService apiService = ApiService();
   bool isForwared = false;
+  List<Forwardmodel> forwardlist = [];
   Map<String, String> statusOption = {
     "F": "Forward",
     "A": "Approved",
@@ -51,10 +53,11 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
   };
   List<PostApproval> postitem = [];
   MapEntry<String, String>? selectedStatus;
-  List<Forwardmodel> forwardlist = [];
+
   int selectedPosition = 0;
   String toapprover = "";
   String toposition = "";
+  String fromappposition = "";
   @override
   void initState() {
     getpendingList();
@@ -212,6 +215,21 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
             claimAmount.text = singleclaimlist.first.claimAmt.toString();
             customerClaim.text = singleclaimlist.first.cusClaim.toString();
           });
+
+          if (singleclaimlist.first.commands!.isNotEmpty) {
+            for (var command in singleclaimlist.first.commands!) {
+              if (command.canEndit == "N") {
+                forwardlist.add(Forwardmodel(
+                    command.approverCode.toString(),
+                    command.approverName.toString(),
+                    command.department.toString(),
+                    command.appPosition.toString(),
+                    command.userId.toString()));
+              } else {
+                fromappposition = command.appPosition.toString();
+              }
+            }
+          }
         } else {
           AppUtils.showSingleDialogPopup(context,
               jsonDecode(response.body)['message'], "OK", onexitpopup, null);
@@ -247,6 +265,13 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
 
   void postingitem() async {
     postitem.clear();
+    String formattedNow =
+        DateFormat("MMM dd yyyy hh:mma").format(DateTime.now());
+    if (singleclaimlist.isEmpty) {
+      AppUtils.showSingleDialogPopup(
+          context, "No data available to submit", "Ok", onexitpopup, null);
+      return;
+    }
 
     for (var command in singleclaimlist.first.commands!) {
       command.approverStatus = command.tempStatus;
@@ -255,20 +280,20 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
       if (singleclaimlist.first.commands![i].canEndit == "Y") {
         postitem.add(PostApproval(
             singleclaimlist.first.docEntry,
-            singleclaimlist.first.commands![i].appPosition.toString(),
+            fromappposition,
             singleclaimlist.first.commands![i].approverCode.toString(),
             singleclaimlist.first.commands![i].approverName.toString(),
             singleclaimlist.first.commands![i].approverStatus.toString(),
             singleclaimlist.first.commands![i].department.toString(),
             singleclaimlist.first.commands![i].userId.toString(),
-            singleclaimlist.first.commands![i].appDate.toString(),
+            formattedNow,
             singleclaimlist.first.commands![i].remarks.toString(),
             singleclaimlist.first.commands![i].appType.toString(),
             (i == i && isForwared == true) ? Prefs.getEmpID("Id") : "",
             i == i && isForwared == true
                 ? singleclaimlist.first.commands![i].approverCode
                 : "",
-            singleclaimlist.first.commands![i].appPosition.toString(),
+            fromappposition,
             singleclaimlist.first.commands![i].tempStatus == "F"
                 ? toapprover
                 : "",
@@ -518,22 +543,6 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
                     orElse: () => MapEntry("P", "Pending"),
                   );
 
-                  // Approver forwarding options excluding self
-                  // final filteredCommands = singleclaimlist.first.commands!
-                  //     .where((c) => c.approverCode.toString() != currentUserId)
-                  //     .toList();
-
-                  // final approverItems = filteredCommands
-                  //     .map((cmd) => MapEntry(
-                  //           "${cmd.approverName} - ${cmd.department} - ${cmd.approverCode}",
-                  //           cmd,
-                  //         ))
-                  //     .toList();
-
-                  // final bool isEditable =
-                  //     currentUserId == command.userId.toString() &&
-                  //         command.approverStatus == "P";
-                  // final bool isForwardSelected = command.tempStatus == "F";
                   String canEndit = command.canEndit.toString();
 
                   final approverItems = singleclaimlist.first.commands!
@@ -559,7 +568,7 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
                               Expanded(
                                 flex: 4,
                                 child: AppUtils.buildNormalText(
-                                    text: command.department ?? ''),
+                                    text: command.departmentnew ?? ''),
                               ),
                               const SizedBox(width: 5),
                               Expanded(
@@ -658,81 +667,56 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
                                 Expanded(
                                   flex: 5,
                                   child: Visibility(
-                                      visible: canEndit == "Y" &&
-                                          command.tempStatus == "F",
-                                      child: DropdownSearch<
-                                          MapEntry<String, Commands>>(
-                                        enabled: canEndit == "Y",
-                                        // selectedItem: approverItems.firstWhere(
-                                        //   (entry) =>
-                                        //       entry.value.approverCode ==
-                                        //           command.toApproverCode &&
-                                        //       entry.value.approverCode != null,
-                                        //   orElse: () => approverItems.isNotEmpty
-                                        //       ? approverItems.first
-                                        //       : MapEntry("No Approver",
-                                        //           Commands()), // Provide a fallback Commands instance
-                                        // ),
-                                        selectedItem: approverItems
-                                                    .isNotEmpty &&
-                                                selectedPosition <
-                                                    approverItems.length
-                                            ? approverItems[selectedPosition]
-                                            : null,
-                                        items: approverItems,
-                                        itemAsString: (entry) =>
-                                            "${entry.value.approverName ?? ''} ${entry.value.userId ?? ''}  - ${entry.value.department ?? ''}",
-                                        onChanged: (entry) {
+                                    visible: canEndit == "Y" &&
+                                        command.tempStatus == "F",
+                                    child: DropdownSearch<Forwardmodel>(
+                                      items: forwardlist,
+                                      itemAsString: (item) =>
+                                          "${item.name} - ${item.code} - ${item.dept} - ${item.postion}",
+                                      selectedItem: forwardlist.isNotEmpty &&
+                                              selectedPosition <
+                                                  forwardlist.length
+                                          ? forwardlist[selectedPosition]
+                                          : null,
+                                      onChanged: (item) {
+                                        if (item != null) {
                                           setState(() {
-                                            // command.toApproverCode =
-                                            //     entry?.value.approverCode;
-                                            // command.fromApproverCode =
-                                            //     currentUserId;
-                                            // command.department=entry.value
-                                            // final int selectedIndex =
-                                            //     approverItems.indexOf(entry!);
-                                            // toapprover = entry
-                                            //     .value.approverCode
-                                            //     .toString();
-                                            // toposition =
-                                            //     selectedIndex.toString();
-                                            if (entry != null) {
-                                              setState(() {
-                                                final int selectedIndex =
-                                                    approverItems
-                                                        .indexOf(entry);
+                                            toapprover = item.toapproverid;
+                                            toposition = item.postion;
 
-                                                // Save values
-                                                command.toApproverCode =
-                                                    entry.value.userId;
-
-                                                toposition =
-                                                    command.toApproverCode =
-                                                        entry.value.appPosition
-                                                            .toString();
-
-                                                toapprover =
-                                                    command.toApproverCode =
-                                                        entry.value.userId
-                                                            .toString();
-
-                                                command.fromApproverCode =
-                                                    currentUserId;
-
-                                                command.department =
-                                                    entry.value.department;
-
-                                                // // Save index
-                                                // selectedPosition =
-                                                //     selectedIndex;
-
-                                                // toposition =
-                                                //     selectedIndex.toString();
-                                              });
-                                            }
+                                            command.toApproverCode =
+                                                item.toapproverid;
+                                            command.fromApproverCode =
+                                                currentUserId;
+                                            command.appPosition = item.postion;
+                                            command.department = item.dept;
+                                            print(
+                                                "Selected Approver: ${item.code}, Position: ${item.postion}");
                                           });
+                                        }
+                                      },
+                                      popupProps: PopupProps.menu(
+                                        showSearchBox: true,
+                                        itemBuilder:
+                                            (context, item, isSelected) {
+                                          return ListTile(
+                                            title: Text(
+                                              "${item.name} - ${item.code} - ${item.dept} - ${item.postion}",
+                                            ),
+                                          );
                                         },
-                                      )),
+                                      ),
+                                      dropdownDecoratorProps:
+                                          DropDownDecoratorProps(
+                                        dropdownSearchDecoration:
+                                            InputDecoration(
+                                          contentPadding: EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 10),
+                                          border: OutlineInputBorder(),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                                 const SizedBox(width: 5),
                                 Visibility(
@@ -1009,11 +993,14 @@ class PostApproval {
 }
 
 class Forwardmodel {
+  String toapproverid;
   String code;
   String name;
   String dept;
+  String postion;
 
-  Forwardmodel(this.code, this.name, this.dept);
+  Forwardmodel(
+      this.code, this.name, this.dept, this.postion, this.toapproverid);
 }
 
 enum MD2IndicatorSize {

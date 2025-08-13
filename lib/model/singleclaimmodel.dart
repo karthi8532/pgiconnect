@@ -165,6 +165,7 @@ class Commands {
   String? approverStatus;
   String? tempStatus;
   String? department;
+  String? departmentnew;
   String? userId;
   String? appDate;
   String? remarks;
@@ -181,6 +182,7 @@ class Commands {
       this.approverStatus,
       this.tempStatus,
       this.department,
+      this.departmentnew,
       this.userId,
       this.appDate,
       this.remarks,
@@ -197,6 +199,7 @@ class Commands {
       approverStatus: toStringVal(json['approverStatus']),
       tempStatus: toStringVal(json['approverStatus']), // <== initialize here
       department: toStringVal(json['department']),
+      departmentnew: toStringVal(json['department']),
       userId: toStringVal(json['userId']),
       appDate: toStringVal(json['appDate']),
       remarks: toStringVal(json['remarks']),
