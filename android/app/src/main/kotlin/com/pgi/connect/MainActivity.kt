@@ -1,4 +1,4 @@
-package com.pgiconnect.pgiconnect
+package com.pgi.connect
 
 import io.flutter.embedding.android.FlutterActivity
 

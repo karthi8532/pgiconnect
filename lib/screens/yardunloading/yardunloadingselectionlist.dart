@@ -88,40 +88,76 @@ class _YardUnloadingSelectionPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Appcolor.primary,
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Unloading List'),
-            ],
-          ),
-          actions: [
-            IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                      builder: (context) => YardUnloadingPage(
-                        docEntry: 0,
-                        status: "Open",
-                      ),
-                    ),
-                  );
-                },
-                icon: Icon(CupertinoIcons.add)),
-            IconButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                      backgroundColor: Colors.transparent,
-                      context: context,
-                      builder: (builder) => bottomSheet());
-                },
-                icon: Icon(CupertinoIcons.sort_down))
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Appcolor.primary,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Unloading List'),
           ],
         ),
-        body: !loading ? getBody() : Center(child: ProgressWithIcon()));
+        actions: [
+          // IconButton(
+          //     onPressed: () {
+          //       Navigator.push(
+          //         context,
+          //         CupertinoPageRoute(
+          //           builder: (context) => YardUnloadingPage(
+          //             docEntry: 0,
+          //             status: "Open",
+          //           ),
+          //         ),
+          //       );
+          //     },
+          //     icon: Icon(CupertinoIcons.add)),
+          // ElevatedButton(
+          //     onPressed: () {
+          //       Navigator.push(
+          //         context,
+          //         CupertinoPageRoute(
+          //           builder: (context) => YardUnloadingPage(
+          //             docEntry: 0,
+          //             status: "Open",
+          //           ),
+          //         ),
+          //       );
+          //     },
+          //     child: Text("Create")),
+          IconButton(
+              onPressed: () {
+                showModalBottomSheet(
+                    backgroundColor: Colors.transparent,
+                    context: context,
+                    builder: (builder) => bottomSheet());
+              },
+              icon: Icon(CupertinoIcons.sort_down))
+        ],
+      ),
+      body: !loading ? getBody() : Center(child: ProgressWithIcon()),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => YardUnloadingPage(
+                  docEntry: 0,
+                  status: "Open",
+                ),
+              ));
+        },
+        label: Text(
+          'Create',
+          style: TextStyle(fontSize: 12, color: Colors.white),
+        ),
+        icon: Icon(
+          Icons.edit,
+          color: Colors.white,
+        ),
+        backgroundColor: Colors.blue,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
   }
 
   Widget getBody() {

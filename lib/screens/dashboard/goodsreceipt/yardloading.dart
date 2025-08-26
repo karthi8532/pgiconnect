@@ -12,6 +12,7 @@ import 'package:pgiconnect/const/pref.dart';
 import 'package:pgiconnect/data/apiservice.dart';
 import 'package:pgiconnect/model/editmodelyarnlist.dart';
 import 'package:pgiconnect/model/supervisorModel.dart';
+import 'package:pgiconnect/screens/dashboard/viewImage.dart';
 import 'package:pgiconnect/screens/login/login/loginpage.dart';
 import 'package:pgiconnect/screens/yarnselectionlist.dart';
 import 'package:pgiconnect/service/appcolor.dart';
@@ -556,17 +557,53 @@ class _YardLoadingState extends State<YardLoading> {
               ..._editimages.map((file) {
                 return Stack(
                   children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8),
-                        image: DecorationImage(
-                          image: NetworkImage(file.path
-                              .toString()
-                              .replaceAll('"', '')), //double quoates remove
-                          fit: BoxFit.cover,
+                    GestureDetector(
+                      onTap: () {
+                        final imagePath = file.path.toString().trim() ?? "";
+                        if (imagePath.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("❌ No image available")),
+                          );
+                          return; // stop navigation
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                ImagePreviewPage(imageUrl: imagePath),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8),
+                          image: DecorationImage(
+                            image: NetworkImage(file.path
+                                .toString()
+                                .replaceAll('"', '')), //double quoates remove
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        color: Colors.black45, // semi-transparent background
+                        padding: const EdgeInsets.all(4),
+                        child: const Text(
+                          "Click to view",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ),

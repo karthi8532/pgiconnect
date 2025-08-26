@@ -129,25 +129,41 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
         title: Text('Add Items'),
         backgroundColor: Appcolor.primary,
         actions: [
-          RawMaterialButton(
-            onPressed: () {
-              final isValid = formKey.currentState!.validate();
-              if (!isValid) {
-                return;
-              }
-              formKey.currentState!.save();
-              additem();
-            },
-            elevation: 2.0,
-            fillColor: Colors.green,
-            padding: const EdgeInsets.all(5.0),
-            shape: const CircleBorder(),
-            child: const Icon(
-              Icons.add,
-              size: 25.0,
-              color: Colors.white,
-            ),
-          )
+          // RawMaterialButton(
+          //   onPressed: () {
+          //     final isValid = formKey.currentState!.validate();
+          //     if (!isValid) {
+          //       return;
+          //     }
+          //     formKey.currentState!.save();
+          //     additem();
+          //   },
+          //   elevation: 2.0,
+          //   fillColor: Colors.green,
+          //   padding: const EdgeInsets.all(5.0),
+          //   shape: const CircleBorder(),
+          //   child: const Icon(
+          //     Icons.add,
+          //     size: 25.0,
+          //     color: Colors.white,
+          //   ),
+          // )
+          // Padding(
+          //   padding: const EdgeInsets.only(right: 5),
+          //   child: ElevatedButton.icon(
+          //       onPressed: () {
+          //         final isValid = formKey.currentState!.validate();
+          //         if (!isValid) {
+          //           return;
+          //         }
+          //         formKey.currentState!.save();
+          //         additem();
+          //       },
+          //       label: Text(
+          //         "Add Item",
+          //         style: TextStyle(fontSize: 14),
+          //       )),
+          // )
         ],
       ),
       body: Column(
@@ -194,7 +210,6 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
                         DropdownSearch<ItemModel>(
                           key: itemkey,
                           popupProps: PopupProps.menu(
-                            
                             showSearchBox: true,
                             interceptCallBacks: true, //important line
                             itemBuilder: (ctx, item, isSelected) {
@@ -852,6 +867,26 @@ class ProductSelectionScreenState extends State<ProductSelectionScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          final isValid = formKey.currentState!.validate();
+          if (!isValid) {
+            return;
+          }
+          formKey.currentState!.save();
+          additem();
+        },
+        label: Text(
+          'Add Item',
+          style: TextStyle(fontSize: 12, color: Colors.white),
+        ),
+        icon: Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
+        backgroundColor: Colors.blue,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: BottomAppBar(
         child: Padding(
           padding: EdgeInsets.all(5),

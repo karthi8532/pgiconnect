@@ -98,7 +98,7 @@ class _LoginPageState extends State<LoginPage> {
 
                         //email and password textField section
                         Expanded(
-                          flex: 5,
+                          flex: 7,
                           child: Column(
                             children: [
                               //email textField
@@ -142,27 +142,15 @@ class _LoginPageState extends State<LoginPage> {
                                     height: 8,
                                   ),
                                   passwordTextField(size),
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                  signInButton(size),
                                 ],
                               ),
-
-                              const SizedBox(
-                                height: 16,
-                              ),
-
-                              //keep signed in and forget password section
-                              //keepSigned_ForgetSection(),
                             ],
                           ),
                         ),
-
-                        //sign in button section
-                        Expanded(
-                          flex: 1,
-                          child: signInButton(size),
-                        ),
-
-                        //sign up text here
-                        // Expanded(flex: 2, child: buildFooter(size)),
                       ],
                     ),
                   ),
@@ -297,85 +285,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget keepSigned_ForgetSection() {
-    return Row(
-      children: <Widget>[
-        Container(
-          width: 24.0,
-          height: 24.0,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4.0),
-            border: Border.all(
-              width: 0.7,
-              color: const Color(0xFFD0D0D0),
-            ),
-          ),
-        ),
-        const SizedBox(
-          width: 16,
-        ),
-        Text(
-          'Keep me signed in',
-          style: GoogleFonts.inter(
-            fontSize: 12.0,
-            color: const Color(0xFFABB3BB),
-            height: 1.17,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            'Forgot password?',
-            style: GoogleFonts.inter(
-              fontSize: 12.0,
-              color: const Color(0xFFF56B3F),
-              height: 1.17,
-            ),
-            textAlign: TextAlign.right,
-          ),
-        )
-      ],
-    );
-  }
-
-  Widget buildRemember(Size size) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Container(
-          alignment: Alignment.center,
-          width: 17.0,
-          height: 17.0,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4.0),
-            gradient: const LinearGradient(
-              begin: Alignment(5.65, -1.0),
-              end: Alignment(-1.0, 1.94),
-              colors: [Color(0xFF00AD8F), Color(0xFF7BF4DF)],
-            ),
-          ),
-          child: SvgPicture.string(
-            // Vector 5
-            '<svg viewBox="47.0 470.0 7.0 4.0" ><path transform="translate(47.0, 470.0)" d="M 0 1.5 L 2.692307710647583 4 L 7 0" fill="none" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /></svg>',
-            width: 7.0,
-            height: 4.0,
-          ),
-        ),
-        const SizedBox(
-          width: 16,
-        ),
-        Text(
-          'Remember me',
-          style: GoogleFonts.inter(
-            fontSize: 14.0,
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget signInButton(Size size) {
     return GestureDetector(
       onTap: () {
@@ -395,9 +304,9 @@ class _LoginPageState extends State<LoginPage> {
       },
       child: Container(
         alignment: Alignment.center,
-        height: size.height / 13,
+        height: 50,
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25.0), color: Appcolor.primary),
+            borderRadius: BorderRadius.circular(30.0), color: Appcolor.primary),
         child: Text(
           'Sign In',
           style: GoogleFonts.inter(
@@ -407,35 +316,6 @@ class _LoginPageState extends State<LoginPage> {
           ),
           textAlign: TextAlign.center,
         ),
-      ),
-    );
-  }
-
-  Widget buildFooter(Size size) {
-    return Center(
-      child: Text.rich(
-        TextSpan(
-          style: GoogleFonts.inter(
-            fontSize: 12.0,
-            color: Colors.black,
-          ),
-          children: const [
-            TextSpan(
-              text: 'Don’t have an account? ',
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            TextSpan(
-              text: 'Sign Up here',
-              style: TextStyle(
-                color: Color(0xFFFF7248),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        textAlign: TextAlign.center,
       ),
     );
   }

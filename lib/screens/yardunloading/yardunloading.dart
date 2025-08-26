@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:math';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ import 'package:pgiconnect/model/weighlocation.dart';
 import 'package:pgiconnect/model/weighticketnumbermodel.dart';
 import 'package:pgiconnect/model/yadmodel.dart';
 import 'package:pgiconnect/screens/dashboard/approval/approvalsubmit.dart';
+import 'package:pgiconnect/screens/dashboard/viewImage.dart';
 import 'package:pgiconnect/screens/login/utils/app_utils.dart';
 import 'package:pgiconnect/screens/yardunloading/pendingitem.dart';
 import 'package:pgiconnect/screens/yardunloading/yardunloadingselectionlist.dart';
@@ -51,7 +53,10 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
   List<PendingItem> selectedPendingItems = [];
   TextEditingController alterweightfromdatecontroller = TextEditingController();
   TextEditingController alterweighttodatecontroller = TextEditingController();
-  TextEditingController qtycontroller = TextEditingController();
+  TextEditingController newqtycontroller = TextEditingController();
+  final FocusNode newqtyFocus = FocusNode();
+  List<TextEditingController> qtycontroller = [];
+
   ApiService apiService = ApiService();
   bool loading = false;
   int? expandedIndex;
@@ -74,6 +79,9 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
   String alterItemCode = '';
   String alterItemName = '';
 
+  String alterinvoiceType = "";
+  String alterdocType = "";
+
   String getprojectId = "";
   String getprojectName = '';
   String getAgentCode = '';
@@ -89,6 +97,8 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
 
   String getwaybridgeCode = '';
   String getwaybridgeName = '';
+
+  double totalQty = 0;
 
   List<UnloadingHeaderModel> headerlist = [];
   Map<String, String> invoiceType = {"LME": "LME", "Normal": "Normal"};
@@ -118,7 +128,6 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
   final List<String> _removedURL = [];
 
   final Set<File> _selectedImages = {};
-
   final ImagePicker _picker = ImagePicker();
 
   bool value1 = false;
@@ -142,14 +151,17 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
     if (widget.docEntry == 0) {
       getwaybridgeCode = Prefs.getWeighLocationID("WeighLocationID") ?? "";
       getwaybridgeName = Prefs.getWeighLocationName("WeighLocationName") ?? "";
-
       selectedWaybridge =
           WeighLocationModel(id: getwaybridgeCode, value: getwaybridgeName);
       setState(() {});
     } else {
       editUnloading();
     }
-
+    newqtyFocus.addListener(() {
+      if (!newqtyFocus.hasFocus) {
+        _formatTo3Decimal(newqtycontroller);
+      }
+    });
     super.initState();
   }
 
@@ -162,7 +174,11 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
     refNoController.dispose();
     postingDate.dispose();
     poNumcontroller.dispose();
-    qtycontroller.dispose();
+    newqtycontroller.dispose();
+    newqtyFocus.dispose();
+    for (var c in qtycontroller) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -279,13 +295,6 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                                 "Ok",
                                 exitpopup,
                                 null);
-                          } else if (getsalespersonCode.isEmpty) {
-                            AppUtils.showSingleDialogPopup(
-                                context,
-                                "Please Select SalesPerson",
-                                "Ok",
-                                exitpopup,
-                                null);
                           } else if (getwhsCode.isEmpty) {
                             AppUtils.showSingleDialogPopup(
                                 context,
@@ -297,7 +306,28 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                             AppUtils.showSingleDialogPopup(context,
                                 "Please Select Items", "Ok", exitpopup, null);
                           } else {
-                            postitems();
+                            // postitems();
+                            double currentQty = selectedPendingItems.fold(
+                                0, (sum, item) => sum + item.quantity);
+
+                            if (currentQty == 0) {
+                              AppUtils.showSingleDialogPopup(
+                                  context,
+                                  "After enter the qty and click to submit button in keyboard!.",
+                                  "Ok",
+                                  onexitpopup,
+                                  null);
+                            }
+                            if (totalQty < currentQty) {
+                              AppUtils.showSingleDialogPopup(
+                                  context,
+                                  "Total calculated weight does not match the weighbridge weight.",
+                                  "Ok",
+                                  onexitpopup,
+                                  null);
+                            } else {
+                              postitems();
+                            }
                           }
                         },
                         child: Row(
@@ -335,6 +365,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
             DropdownSearch<WeighLocationModel>(
               selectedItem: selectedWaybridge,
               key: weighKey,
+              enabled: widget.docEntry == 0 ? true : false,
               popupProps: PopupProps.menu(
                 showSearchBox: true,
                 interceptCallBacks: true, //important line
@@ -384,6 +415,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
             DropdownSearch<WeighTicketNumberModel>(
               selectedItem: selectedWayTicketno,
               key: weighticketKey,
+              enabled: widget.docEntry == 0 ? true : false,
               popupProps: PopupProps.menu(
                 showSearchBox: true,
                 interceptCallBacks: true, //important line
@@ -435,8 +467,21 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
             widget.status == "Close"
                 ? Container()
                 : Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      SizedBox(
+                        width: 200,
+                        height: 50,
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: "Total Qty",
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5.0),
+                            ),
+                          ),
+                          child: Text(totalQty.toStringAsFixed(2)),
+                        ),
+                      ),
                       ElevatedButton(
                           onPressed: () {
                             if (getwaybridgeCode.isEmpty) {
@@ -484,6 +529,9 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                           )),
                     ],
                   ),
+            SizedBox(
+              height: 5,
+            ),
             AppUtils.buildNormalText(text: "Supplier Details"),
             SizedBox(height: 5),
             DropdownSearch<SuppplierModel>(
@@ -859,17 +907,54 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
               ..._editimages.map((file) {
                 return Stack(
                   children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8),
-                        image: DecorationImage(
-                          image: NetworkImage(file.path
-                              .toString()
-                              .replaceAll('"', '')), //double quoates remove
-                          fit: BoxFit.cover,
+                    GestureDetector(
+                      onTap: () {
+                        final imagePath = file.path.toString().trim() ?? "";
+
+                        if (imagePath.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("❌ No image available")),
+                          );
+                          return; // stop navigation
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                ImagePreviewPage(imageUrl: imagePath),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8),
+                          image: DecorationImage(
+                            image: NetworkImage(file.path
+                                .toString()
+                                .replaceAll('"', '')), //double quoates remove
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        color: Colors.black45, // semi-transparent background
+                        padding: const EdgeInsets.all(4),
+                        child: const Text(
+                          "Click to view",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ),
@@ -939,6 +1024,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                     (item) => UnloadingHeaderModel.fromJson(item))
                 .toList();
             setState(() {
+              totalQty = headerlist.first.totalQty ?? 0;
               pickupNoController.text =
                   headerlist.first.vehicleNumber.toString();
 
@@ -1031,30 +1117,49 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
           List<PendingItem>.from(result['selectedItems']);
 
       setState(() {
-        for (var newItem in newItems) {
-          final isDuplicate = selectedPendingItems
-              .any((existingItem) => existingItem.itemCode == newItem.itemCode);
+        // for (var newItem in newItems) {
+        //    final isDuplicate = selectedPendingItems
+        //       .any((existingItem) => existingItem.itemCode == newItem.itemCode);
 
-          if (!isDuplicate) {
-            selectedPendingItems.add(newItem);
+        //    if (!isDuplicate) {
+        //   selectedPendingItems.add(newItem);
 
-            final String whsCode = newItem.warehouse;
-            final String whsName = newItem.warehousename;
-            selectedWhs = WarehouseModel(id: whsCode, value: whsName);
+        //   final String whsCode = newItem.warehouse;
+        //   final String whsName = newItem.warehousename;
+        //   selectedWhs = WarehouseModel(id: whsCode, value: whsName);
+        //    }
+        // }
+        newItems
+            .where((newItem) => !selectedPendingItems
+                .any((e) => e.itemCode == newItem.itemCode))
+            .toSet()
+            .forEach((newItem) {
+          selectedPendingItems.add(newItem);
+          print(jsonEncode(selectedPendingItems));
+          if (selectedPendingItems.isNotEmpty) {
+            qtycontroller = selectedPendingItems
+                .map((e) => TextEditingController(
+                      text: e.quantity.toStringAsFixed(3),
+                    ))
+                .toList();
           }
-        }
+
+          final String whsCode = newItem.warehouse;
+          final String whsName = newItem.warehousename;
+          selectedWhs = WarehouseModel(id: whsCode, value: whsName);
+        });
       });
     }
   }
 
-  void addManualItem() {
+  void addManualItem(
+    double qty,
+  ) {
     setState(() {
-      selectedinvoiceType = const MapEntry("LME", "LME");
-      selecteddocType = const MapEntry("Provisional", "Provisional");
       selectedPendingItems.add(
         PendingItem(
-            invoiceType: "LME",
-            documentType: "Provisional",
+            invoiceType: selectedinvoiceType!.value,
+            documentType: selecteddocType!.value,
             wgId: 0,
             ticketNo: getTicketNo,
             trnDate: "",
@@ -1063,7 +1168,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
             itemName: alterItemName,
             warehouse: "",
             warehousename: "",
-            quantity: 1,
+            quantity: double.parse(qty.toStringAsFixed(2)),
             unitPrice: 0,
             controlPrice: 0,
             lMELevelFormula: 0,
@@ -1079,13 +1184,22 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
             slpCode: "",
             slpName: "",
             lMEFixationDate: "",
-            ismanuall: true),
+            ismanuall: true,
+            baseLine: 0),
       );
       alterItemCode = "";
       alterItemName = "";
-      qtycontroller.text = "";
-      qtycontroller.clear();
+      qtycontroller.add(TextEditingController(text: qty.toStringAsFixed(3)));
+      newqtycontroller.clear();
+      setState(() {});
     });
+  }
+
+  void _formatTo3Decimal(TextEditingController controller) {
+    final value = double.tryParse(controller.text);
+    if (value != null) {
+      controller.text = value.toStringAsFixed(3);
+    }
   }
 
   String convertDateNew(String inputDate) {
@@ -1179,7 +1293,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                           children: [
                             Expanded(
                               child: Text(
-                                "${selectedPendingItems[index].itemCode}- ${selectedPendingItems[index].itemName}",
+                                "${selectedPendingItems[index].itemCode}- ${selectedPendingItems[index].itemName} - Qty : ${selectedPendingItems[index].quantity}",
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 16),
@@ -1198,6 +1312,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                                             AppUtils.pop(context);
                                             selectedPendingItems
                                                 .removeAt(index);
+                                            qtycontroller.removeAt(index);
                                             setState(() {});
                                           }, () {
                                             AppUtils.pop(context);
@@ -1317,128 +1432,113 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                                     ),
                                   ),
                                   const SizedBox(height: 5),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 4,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Ware House"),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Expanded(
-                                        flex: 3,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Qty"),
-                                      ),
-                                    ],
+                                  AppUtils.buildNormalText(text: "Qty"),
+                                  SizedBox(
+                                    height: 4,
                                   ),
-                                  const SizedBox(height: 5),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 5,
-                                        child: DropdownSearch<WarehouseModel>(
-                                          key: whsKey1,
-                                          selectedItem: selectedWhs,
-                                          popupProps: PopupProps.menu(
-                                            showSearchBox: true,
-                                            interceptCallBacks:
-                                                true, //important line
-                                            itemBuilder:
-                                                (ctx, item, isSelected) {
-                                              return ListTile(
-                                                  selected: isSelected,
-                                                  title: Text(
-                                                    item.value.toString(),
-                                                    style: TextStyle(
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                  onTap: () {
-                                                    whsKey1.currentState
-                                                        ?.popupValidate([item]);
-                                                    selectedPendingItems[index]
-                                                            .warehouse =
-                                                        item.id.toString();
-                                                    getwhsCode =
-                                                        item.id.toString();
-                                                    getWhsName =
-                                                        item.value.toString();
-                                                    setState(() {});
-                                                  });
-                                            },
-                                          ),
-                                          asyncItems: (String filter) =>
-                                              ApiService.getwarehouselist(
-                                            Prefs.getDBName('DBName'),
-                                            Prefs.getBranchID('BranchID'),
-                                            filter: filter,
-                                          ),
-                                          itemAsString: (WarehouseModel item) =>
-                                              item.value.toString(),
-                                          dropdownDecoratorProps:
-                                              DropDownDecoratorProps(
-                                            dropdownSearchDecoration:
-                                                InputDecoration(
-                                              contentPadding:
-                                                  EdgeInsets.fromLTRB(
-                                                      20.0, 10.0, 20.0, 10.0),
-                                              hintText: 'WareHouse * ',
-                                              enabledBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(1),
-                                                borderSide: const BorderSide(
-                                                    color: Colors.grey,
-                                                    width: 1),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(1),
-                                                borderSide: const BorderSide(
-                                                    color: Colors.grey,
-                                                    width: 1),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 5),
-                                      Expanded(
-                                        flex: 5,
-                                        child: TextFormField(
-                                          initialValue:
-                                              selectedPendingItems[index]
-                                                  .quantity
-                                                  .toString(),
-                                          onChanged: (value) => {
-                                            // Update the quantity in the item
+                                  Focus(
+                                    onFocusChange: (hasFocus) {
+                                      if (!hasFocus) {
+                                        double oldValue =
                                             selectedPendingItems[index]
-                                                    .quantity =
-                                                double.tryParse(value) ?? 0.0
-                                          },
-                                          decoration: InputDecoration(
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 8),
-                                            focusedBorder:
-                                                const OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        width: 1,
-                                                        color: Colors.grey)),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                            disabledBorder: OutlineInputBorder(
-                                              borderSide: const BorderSide(
-                                                  color: Colors.black26,
-                                                  width: 1),
-                                            ),
-                                          ),
+                                                .quantity;
+                                        double newValue = double.tryParse(
+                                                qtycontroller[index].text) ??
+                                            0.0;
+
+                                        double currentQty =
+                                            selectedPendingItems.fold(
+                                          0,
+                                          (sum, item) => sum + item.quantity,
+                                        );
+                                        double sumofqty =
+                                            (currentQty - oldValue) + newValue;
+                                        if (totalQty < sumofqty) {
+                                          qtycontroller[index].text = "";
+                                          qtycontroller[index].clear();
+                                          AppUtils.showSingleDialogPopup(
+                                            context,
+                                            "Total calculated weight does not match the weighbridge weight.",
+                                            "Ok",
+                                            onexitpopup,
+                                            null,
+                                          );
+                                        } else {
+                                          qtycontroller[index].text =
+                                              newValue.toStringAsFixed(3);
+                                          selectedPendingItems[index].quantity =
+                                              newValue;
+                                        }
+                                      }
+                                    },
+                                    child: TextFormField(
+                                      controller: qtycontroller[index],
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                              decimal:
+                                                  true), // ✅ allow decimals
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.allow(RegExp(
+                                            r'^\d*\.?\d*')), // ✅ regex allows "123", "123.45"
+                                      ],
+                                      onFieldSubmitted: (value) {
+                                        double oldValue =
+                                            selectedPendingItems[index]
+                                                .quantity;
+                                        double newValue =
+                                            double.tryParse(value) ?? 0.0;
+
+                                        double currentQty =
+                                            selectedPendingItems.fold(
+                                          0,
+                                          (sum, item) => sum + item.quantity,
+                                        );
+                                        double sumofqty =
+                                            (currentQty - oldValue) + newValue;
+
+                                        if (totalQty < sumofqty) {
+                                          qtycontroller[index].text = "";
+                                          qtycontroller[index].clear();
+                                          AppUtils.showSingleDialogPopup(
+                                            context,
+                                            "Total calculated weight does not match the weighbridge weight.",
+                                            "Ok",
+                                            onexitpopup,
+                                            null,
+                                          );
+                                        } else {
+                                          qtycontroller[index].text =
+                                              newValue.toStringAsFixed(3);
+                                          selectedPendingItems[index].quantity =
+                                              newValue;
+                                        }
+                                      },
+                                      onEditingComplete: () {
+                                        final value = double.tryParse(
+                                                qtycontroller[index].text) ??
+                                            0.0;
+                                        // ✅ Force 3 decimals after editing
+                                        qtycontroller[index].text =
+                                            value.toStringAsFixed(3);
+                                        selectedPendingItems[index].quantity =
+                                            value;
+                                      },
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 8),
+                                        focusedBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                width: 1, color: Colors.grey)),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderSide: const BorderSide(
+                                              color: Colors.black26, width: 1),
+                                        ),
+                                        disabledBorder: OutlineInputBorder(
+                                          borderSide: const BorderSide(
+                                              color: Colors.black26, width: 1),
                                         ),
                                       ),
-                                    ],
+                                    ),
                                   ),
                                   SizedBox(height: 5),
                                 ],
@@ -1470,6 +1570,12 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                       return ListTile(
                           selected: isSelected,
                           title: Text(
+                            item.itemCode.toString(),
+                            style: TextStyle(
+                              color: Colors.black,
+                            ),
+                          ),
+                          subtitle: Text(
                             item.itemName.toString(),
                             style: TextStyle(
                               color: Colors.black,
@@ -1479,6 +1585,21 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                             selectItemkey.currentState?.popupValidate([item]);
                             alterItemCode = item.itemCode.toString();
                             alterItemName = item.itemName.toString();
+                            alterinvoiceType = item.invoiceType.toString();
+                            alterdocType = item.documentType.toString();
+
+                            selectedinvoiceType =
+                                invoiceType.entries.firstWhere(
+                              (entry) => entry.key == alterinvoiceType,
+                              orElse: () => invoiceType
+                                  .entries.first, // fallback to first option
+                            );
+
+                            selecteddocType = docType.entries.firstWhere(
+                              (entry) => entry.key == alterdocType,
+                              orElse: () => docType
+                                  .entries.first, // fallback to first option
+                            );
                             setState(() {});
                           });
                     },
@@ -1509,6 +1630,70 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                   ),
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: AppUtils.buildNormalText(text: "Invoice Type"),
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      flex: 3,
+                      child: AppUtils.buildNormalText(text: "Doc Type"),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 5),
+              Padding(
+                padding: const EdgeInsets.only(left: 8, right: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                        flex: 5,
+                        child: DropdownSearch<MapEntry<String, String>>(
+                          enabled: true,
+                          selectedItem: selectedinvoiceType,
+                          items: invoiceType.entries.toList(),
+                          itemAsString: (entry) => entry.value,
+                          onChanged: (entry) {
+                            if (entry != null) {
+                              setState(() {
+                                selectedinvoiceType = entry;
+                              });
+                            }
+                          },
+                        )),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      flex: 5,
+                      child: DropdownSearch<MapEntry<String, String>>(
+                        enabled: true,
+                        selectedItem: selecteddocType,
+                        items: docType.entries.toList(),
+                        itemAsString: (entry) => entry.value,
+                        onChanged: (entry) {
+                          if (entry != null) {
+                            setState(() {
+                              selecteddocType = entry;
+                            });
+                          }
+                        },
+                        popupProps: PopupProps.menu(showSearchBox: true),
+                        dropdownDecoratorProps: DropDownDecoratorProps(
+                          dropdownSearchDecoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 10),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               SizedBox(
                 height: 5,
               ),
@@ -1520,7 +1705,8 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                       flex: 6,
                       child: TextFormField(
                         maxLines: 1,
-                        controller: qtycontroller,
+                        focusNode: newqtyFocus,
+                        controller: newqtycontroller,
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
                         inputFormatters: [
@@ -1561,7 +1747,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                                     "OK",
                                     onexitpopup,
                                     null);
-                              } else if (qtycontroller.text.isEmpty) {
+                              } else if (newqtycontroller.text.isEmpty) {
                                 AppUtils.showSingleDialogPopup(
                                     context,
                                     "Please Enter Qty",
@@ -1569,7 +1755,22 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                                     onexitpopup,
                                     null);
                               } else {
-                                addManualItem();
+                                double currentQty = selectedPendingItems.fold(
+                                    0, (sum, item) => sum + item.quantity);
+                                double addqty =
+                                    double.parse(newqtycontroller.text) ?? 0;
+                                double sumofqty = currentQty + addqty;
+                                if (totalQty < sumofqty) {
+                                  AppUtils.showSingleDialogPopup(
+                                      context,
+                                      "Total calculated weight does not match the weighbridge weight.",
+                                      "Ok",
+                                      onexitpopup,
+                                      null);
+                                } else {
+                                  addManualItem(
+                                      double.parse(newqtycontroller.text) ?? 0);
+                                }
                               }
                             },
                             child: Text("Add")))
@@ -1673,7 +1874,8 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
         "purRemark": "",
         "controlPirce": selectedPendingItems[i].controlPrice,
         "controlPrcnt": selectedPendingItems[i].controlPercentage,
-        "createdBy": Prefs.getEmpID("Id")
+        "createdBy": Prefs.getEmpID("Id"),
+        "baseLine": selectedPendingItems[i].baseLine,
       });
     }
 
@@ -1708,6 +1910,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
     map['PriceStatus'] = widget.status;
     map['weighLocation'] = getwaybridgeCode;
     map['whsCode'] = getwhsCode;
+    map['baseLine'] = 0;
 
     //log((jsonEncode(dataToSend)));
 
@@ -1870,6 +2073,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
             updateGrnSelection(editYarnList[0].postGRN);
 
             value1 = widget.status == "Close" ? true : false;
+            totalQty = editYarnList[0].totalQty ?? 0;
 
             selectedPendingItems = editYarnList
                 .map((item) => PendingItem(
@@ -1899,8 +2103,18 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                     slpCode: item.slpCode,
                     slpName: item.slpName,
                     lMEFixationDate: item.lmeFixationDate,
-                    ismanuall: false))
+                    ismanuall: false,
+                    baseLine: item.baseLine))
                 .toList();
+
+            if (selectedPendingItems.isNotEmpty) {
+              qtycontroller = selectedPendingItems
+                  .map((e) => TextEditingController(
+                        text: e.quantity.toStringAsFixed(3),
+                      ))
+                  .toList();
+            }
+
             setState(() {});
           }
 

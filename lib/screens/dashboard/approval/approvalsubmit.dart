@@ -12,6 +12,7 @@ import 'package:pgiconnect/model/singleclaimmodel.dart';
 import 'package:pgiconnect/screens/login/utils/app_utils.dart';
 import 'package:pgiconnect/service/appcolor.dart';
 import 'package:pgiconnect/util/urllauncherservice.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ApprovalSubmitPage extends StatefulWidget {
   int docEntry = 0;
@@ -100,15 +101,15 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
             ],
           ),
           centerTitle: true,
-          actions: [
-            singleclaimlist.isNotEmpty
-                ? IconButton(
-                    onPressed: () {
-                      postingitem();
-                    },
-                    icon: Icon(Icons.save))
-                : Container()
-          ],
+          //actions: [
+          // singleclaimlist.isNotEmpty
+          //     ? IconButton(
+          //         onPressed: () {
+          //           postingitem();
+          //         },
+          //         icon: Icon(Icons.save))
+          //     : Container()
+          //],
         ),
         body: !loading
             ? Column(
@@ -163,6 +164,23 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
             : Center(
                 child: CircularProgressIndicator(),
               ),
+        floatingActionButton: singleclaimlist.isNotEmpty
+            ? FloatingActionButton.extended(
+                onPressed: () {
+                  postingitem();
+                },
+                label: Text(
+                  'Submit',
+                  style: TextStyle(fontSize: 12, color: Colors.white),
+                ),
+                icon: Icon(
+                  Icons.save,
+                  color: Colors.white,
+                ),
+                backgroundColor: Colors.blue,
+              )
+            : Container(),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),
     );
   }
@@ -193,7 +211,6 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
             poNumcontroller.text = singleclaimlist.first.poNum.toString();
             supplierNamecontroller.text =
                 singleclaimlist.first.venName.toString();
-
             claimReason.text = singleclaimlist.first.cusClaim.toString();
 
             sellTypecontroller.text = singleclaimlist.first.sellType.toString();
@@ -832,9 +849,10 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
                     child: ListTile(
                       onTap: () async {
                         try {
-                          await UrlLauncherService().launchUrlExternal(
-                              attachements.url.toString(),
-                              isNewTab: true);
+                          // await UrlLauncherService().launchUrlExternal(
+                          //     attachements.url.toString(),
+                          //     isNewTab: true);
+                          _launchUrl(attachements.url.toString());
                         } catch (e) {
                           print("Failed to launch URL: $e");
                         }
@@ -853,6 +871,20 @@ class _ApprovalSubmitPageState extends State<ApprovalSubmitPage> {
               ),
       ],
     );
+  }
+
+  Future<void> _launchUrl(url, {bool isNewTab = true}) async {
+    if (Platform.isAndroid) {
+      if (!await launchUrl(Uri.parse(url),
+          mode: LaunchMode.externalNonBrowserApplication)) {
+        throw Exception('Could not launch $url');
+      }
+    } else if (Platform.isIOS) {
+      if (!await launchUrl(Uri.parse(url),
+          mode: LaunchMode.externalApplication)) {
+        throw Exception('Could not launch $url');
+      }
+    }
   }
 
   Widget _buildDataRow(Items item) {

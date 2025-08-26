@@ -26,10 +26,10 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
             useMaterial3: true,
             appBarTheme: AppBarTheme(
-              color: Colors.white,
+              backgroundColor: Colors.white,
               elevation: 2,
             ),
-            cardTheme: const CardTheme(
+            cardTheme: const CardThemeData(
                 elevation: 1,
                 surfaceTintColor: Colors.white,
                 color: Colors.white)),

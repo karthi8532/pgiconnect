@@ -8,6 +8,7 @@ class UnloadingHeaderModel {
   String? salesPersonName;
   String? cardCode;
   String? cardName;
+  double? totalQty;
 
   UnloadingHeaderModel(
       {required this.vehicleNumber,
@@ -18,7 +19,8 @@ class UnloadingHeaderModel {
       required this.salesPersonCode,
       required this.salesPersonName,
       required this.cardCode,
-      required this.cardName});
+      required this.cardName,
+      required this.totalQty});
 
   factory UnloadingHeaderModel.fromJson(Map<String, dynamic> json) {
     return UnloadingHeaderModel(
@@ -31,6 +33,7 @@ class UnloadingHeaderModel {
       salesPersonName: json["salesPersonName"],
       cardCode: json["cardCode"],
       cardName: json["cardName"],
+      totalQty: json['totalQty']
     );
   }
 }

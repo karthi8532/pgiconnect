@@ -111,8 +111,9 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
   WarehouseModel? selectedWhs;
   SalesPersonModel? selectedSales;
   WeighLocationModel? selectedWaybridge;
+
   bool value1 = false;
-  String getGrnCode = "";
+
   MapEntry<String, String>? selectedGrn;
 
   List<MapEntry<String, String>> grnList = [
@@ -245,7 +246,7 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                                 "Ok",
                                 exitpopup,
                                 null);
-                          } else if (getGrnCode.isEmpty) {
+                          } else if (selectedGrn!.value.isEmpty) {
                             AppUtils.showSingleDialogPopup(context,
                                 "Please Select GRN", "Ok", exitpopup, null);
                           } else if (getsalespersonCode.isEmpty) {
@@ -656,7 +657,7 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                   child: DropdownSearch<MapEntry<String, String>>(
                     items: grnList,
                     itemAsString: (MapEntry<String, String>? entry) =>
-                        entry?.value ?? '',
+                        entry?.value ?? 'Y',
                     selectedItem: selectedGrn,
                     dropdownDecoratorProps: const DropDownDecoratorProps(
                       dropdownSearchDecoration: InputDecoration(
@@ -669,7 +670,7 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                         selectedGrn = value;
                       });
                       print("Selected: ${value?.key} - ${value?.value}");
-                      getGrnCode = "${value?.key}";
+                      //getGrnCode = "${value?.key}";
                     },
                   ),
                 ),
@@ -925,7 +926,7 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                         //heading
                         backgroundColor: Colors.white,
                         title: Text(
-                          "${selectedPendingItems[index].itemCode}- ${selectedPendingItems[index].itemName}",
+                          "${selectedPendingItems[index].itemCode}- ${selectedPendingItems[index].itemName} - Qty ${selectedPendingItems[index].quantity}",
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 16),
                         ),
@@ -1439,7 +1440,8 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
     dataToSend.clear();
     for (int i = 0; i < selectedPendingItems.length; i++) {
       dataToSend.add({
-        "docEntry": widget.status == "Open" ? "" : widget.docEntry,
+        // "docEntry": widget.status == "Open" ? "" : widget.docEntry,
+        "docEntry": widget.docEntry,
         "lineId": i + 1,
         "itemCode": selectedPendingItems[i].itemCode,
         "itemName": selectedPendingItems[i].itemName,
@@ -1491,7 +1493,7 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
     map['slpCode'] = getsalespersonCode;
     map['slpName'] = getsalespersonName;
     map['agentCode'] = getAgentCode;
-    map['postGRN'] = getGrnCode;
+    map['postGRN'] = selectedGrn!.key;
     map['supervisor'] = "";
     map['status'] = "Close";
     map['projCode'] = getprojectId;
@@ -1693,7 +1695,8 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                     slpCode: item.slpCode,
                     slpName: item.slpName,
                     lMEFixationDate: item.lmeFixationDate,
-                    ismanuall: false))
+                    ismanuall: false,
+                    baseLine: item.baseLine ?? 0))
                 .toList();
             setState(() {});
           }
@@ -1740,9 +1743,7 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
     selectedGrn = grnList.firstWhere(
       (entry) {
         final match = entry.key == value;
-        if (match) {
-          getGrnCode = value;
-        }
+        if (match) {}
         return match;
       },
       orElse: () => const MapEntry("N", "No"),

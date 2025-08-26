@@ -885,6 +885,7 @@ class ApiService {
     request.fields['weighLocation'] = finalMap['weighLocation'];
     request.fields['whsCode'] = finalMap['whsCode'];
     request.fields['filesRemoved'] = jsonEncode(removeImages);
+    request.fields['baseLine'] = finalMap['baseLine']?.toString() ?? '';
     for (File filePath in files) {
       File file = File(filePath.path);
       if (await file.exists()) {
@@ -1045,10 +1046,10 @@ class ApiService {
     };
     final response = await http.get(
         Uri.parse(
-            "${Appconstant.apiBaseUrl}api/yardunloading/details/$getDBName/$getBranchName?field=weighTicketNo&userId=${Prefs.getEmpID("Id")}&weighLoc&$getWeighLocationCode"),
+            "${Appconstant.apiBaseUrl}api/yardunloading/details/$getDBName/$getBranchName?field=weighTicketNo&userId=${Prefs.getEmpID("Id")}&weighLoc=$getWeighLocationCode"),
         headers: headers);
     print(
-        "${Appconstant.apiBaseUrl}api/yardunloading/details/$getDBName/$getBranchName?field=weighTicketNo&userId=${Prefs.getEmpID("Id")}&weighLoc&$getWeighLocationCode");
+        "${Appconstant.apiBaseUrl}api/yardunloading/details/$getDBName/$getBranchName?field=weighTicketNo&userId=${Prefs.getEmpID("Id")}&weighLoc=$getWeighLocationCode");
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body)['result'];
 
@@ -1107,6 +1108,14 @@ class ApiService {
           .map((item) => NewItemModel.fromJson(item))
           .where((item) =>
               item.itemCode
+                  .toString()
+                  .toLowerCase()
+                  .contains(filter.toString().toLowerCase()) ||
+              item.documentType
+                  .toString()
+                  .toLowerCase()
+                  .contains(filter.toString().toLowerCase()) ||
+              item.invoiceType
                   .toString()
                   .toLowerCase()
                   .contains(filter.toString().toLowerCase()) ||

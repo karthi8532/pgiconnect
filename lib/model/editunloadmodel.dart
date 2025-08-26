@@ -38,49 +38,52 @@ class EditUnloadModel {
   final String yard;
   final String yardName;
   final String warehouseName;
+  final double totalQty;
+  final int baseLine;
   List<AttachmentPath> attachmentPath;
-  EditUnloadModel({
-    required this.yardunloading,
-    required this.docDate,
-    required this.cardCode,
-    required this.customerName,
-    required this.vechileNo,
-    required this.slpCode,
-    required this.slpName,
-    required this.weighLocation,
-    required this.wightNos,
-    required this.documentType,
-    required this.invoiceType,
-    required this.itemCode,
-    required this.itemName,
-    required this.quantity,
-    required this.warehouse,
-    required this.warehousename,
-    required this.unitPrice,
-    required this.controlPirce,
-    required this.lmeLevelFormula,
-    required this.controlPrcentage,
-    required this.lmeAmount,
-    required this.lmeFixationDate,
-    required this.contango,
-    required this.hedginRequied,
-    required this.pONum,
-    required this.pOEntry,
-    required this.poLine,
-    required this.purchaseRemark,
-    required this.total,
-    required this.agentCode,
-    required this.agentName,
-    required this.wightFromDate,
-    required this.wightToDate,
-    required this.postGRN,
-    required this.projCode,
-    required this.projName,
-    required this.yard,
-    required this.yardName,
-    required this.warehouseName,
-    required this.attachmentPath,
-  });
+  EditUnloadModel(
+      {required this.yardunloading,
+      required this.docDate,
+      required this.cardCode,
+      required this.customerName,
+      required this.vechileNo,
+      required this.slpCode,
+      required this.slpName,
+      required this.weighLocation,
+      required this.wightNos,
+      required this.documentType,
+      required this.invoiceType,
+      required this.itemCode,
+      required this.itemName,
+      required this.quantity,
+      required this.warehouse,
+      required this.warehousename,
+      required this.unitPrice,
+      required this.controlPirce,
+      required this.lmeLevelFormula,
+      required this.controlPrcentage,
+      required this.lmeAmount,
+      required this.lmeFixationDate,
+      required this.contango,
+      required this.hedginRequied,
+      required this.pONum,
+      required this.pOEntry,
+      required this.poLine,
+      required this.purchaseRemark,
+      required this.total,
+      required this.agentCode,
+      required this.agentName,
+      required this.wightFromDate,
+      required this.wightToDate,
+      required this.postGRN,
+      required this.projCode,
+      required this.projName,
+      required this.yard,
+      required this.yardName,
+      required this.warehouseName,
+      required this.attachmentPath,
+      required this.totalQty,
+      required this.baseLine});
 
   factory EditUnloadModel.fromJson(Map<String, dynamic> json) {
     return EditUnloadModel(
@@ -123,10 +126,14 @@ class EditUnloadModel {
         yard: json['yard'] ?? '',
         yardName: json['yardName'] ?? '',
         warehouseName: json['warehouseName'] ?? "",
+        totalQty: json['totalQty'] is int
+            ? (json['totalQty'] as int).toDouble()
+            : json['totalQty'],
         attachmentPath: (json['attachmentPath'] as List?)
                 ?.map((x) => AttachmentPath.fromJson(x))
                 .toList() ??
-            []);
+            [],
+        baseLine: json['baseLine'] ?? 0);
   }
 
   Map<String, dynamic> toJson() {
@@ -169,6 +176,8 @@ class EditUnloadModel {
       "projectName": projName,
       "yard": yard,
       "yardName": yardName,
+      "totalQty": totalQty,
+      "baseLine": baseLine
     };
   }
 }

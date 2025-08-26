@@ -26,7 +26,7 @@ class PendingItem {
   String slpName;
   String lMEFixationDate;
   bool ismanuall;
-
+  int baseLine;
   PendingItem(
       {required this.invoiceType,
       required this.documentType,
@@ -54,7 +54,8 @@ class PendingItem {
       required this.slpCode,
       required this.slpName,
       required this.lMEFixationDate,
-      required this.ismanuall});
+      required this.ismanuall,
+      required this.baseLine});
 
   factory PendingItem.fromJson(Map<String, dynamic> json) {
     double parseDouble(dynamic val) {
@@ -71,34 +72,34 @@ class PendingItem {
     }
 
     return PendingItem(
-      invoiceType: json['invoiceType'] ?? '',
-      documentType: json['documentType'] ?? '',
-      wgId: parseInt(json['wgId']),
-      ticketNo: json['ticketNo'] ?? '',
-      trnDate: json['trnDate'] ?? '',
-      customerName: json['customerName'] ?? '',
-      itemCode: json['itemCode'] ?? '',
-      itemName: json['itemName'] ?? '',
-      warehouse: json['warehouse'] ?? '',
-      warehousename: json['warehouseName'] ?? '',
-      quantity: parseDouble(json['quantity']),
-      unitPrice: parseDouble(json['unitPrice']),
-      controlPrice: parseDouble(json['controlPirce']),
-      lMELevelFormula: parseDouble(json['lMELevelFormula']),
-      controlPercentage: json['controlPrcentage'] ?? '',
-      lMEAmount: parseDouble(json['lMEAmount']),
-      contango: parseInt(json['contango']),
-      hedgingRequired: json['HEDGINGREQUIRED'] ?? '',
-      poNumber: json['pONum'] ?? '',
-      pOEntry: parseInt(json['pOEntry']),
-      poLine: parseInt(json['poLine']),
-      purchaseRemarks: json['purchaseRemark'] ?? '',
-      total: parseDouble(json['Total']),
-      slpCode: json['slpCode'] ?? '',
-      slpName: json['slpName'] ?? '',
-      lMEFixationDate: json['lMEFixationDate'] ?? '',
-      ismanuall: json['ismanuall'] == true || json['ismanuall'] == 'true',
-    );
+        invoiceType: json['invoiceType'] ?? '',
+        documentType: json['documentType'] ?? '',
+        wgId: parseInt(json['wgId']),
+        ticketNo: json['ticketNo'] ?? '',
+        trnDate: json['trnDate'] ?? '',
+        customerName: json['customerName'] ?? '',
+        itemCode: json['itemCode'] ?? '',
+        itemName: json['itemName'] ?? '',
+        warehouse: json['warehouse'] ?? '',
+        warehousename: json['warehouseName'] ?? '',
+        quantity: parseDouble(json['quantity']),
+        unitPrice: parseDouble(json['unitPrice']),
+        controlPrice: parseDouble(json['controlPirce']),
+        lMELevelFormula: parseDouble(json['lMELevelFormula']),
+        controlPercentage: json['controlPrcentage'] ?? '',
+        lMEAmount: parseDouble(json['lMEAmount']),
+        contango: parseInt(json['contango']),
+        hedgingRequired: json['HEDGINGREQUIRED'] ?? '',
+        poNumber: json['pONum'] ?? '',
+        pOEntry: parseInt(json['pOEntry']),
+        poLine: parseInt(json['poLine']),
+        purchaseRemarks: json['purchaseRemark'] ?? '',
+        total: parseDouble(json['Total']),
+        slpCode: json['slpCode'] ?? '',
+        slpName: json['slpName'] ?? '',
+        lMEFixationDate: json['lMEFixationDate'] ?? '',
+        ismanuall: json['ismanuall'] == true || json['ismanuall'] == 'true',
+        baseLine: json['baseLine'] ?? 0);
   }
 
   Map<String, dynamic> toJson() {
@@ -130,6 +131,7 @@ class PendingItem {
       'slpName': slpName,
       'lMEFixationDate': lMEFixationDate,
       'ismanuall': ismanuall,
+      'baseLine': baseLine
     };
   }
 }
