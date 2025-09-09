@@ -98,7 +98,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
   String getwaybridgeCode = '';
   String getwaybridgeName = '';
 
-  double totalQty = 0;
+  double totalQty = 0.000;
 
   List<UnloadingHeaderModel> headerlist = [];
   Map<String, String> invoiceType = {"LME": "LME", "Normal": "Normal"};
@@ -282,65 +282,96 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
             widget.status == "Close"
                 ? Container()
                 : Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Appcolor.primary),
-                        onPressed: () {
-                          if (getwhsCode.isEmpty) {
-                            AppUtils.showSingleDialogPopup(
-                                context,
-                                "Please Select Warehouse",
-                                "Ok",
-                                exitpopup,
-                                null);
-                          } else if (getwhsCode.isEmpty) {
-                            AppUtils.showSingleDialogPopup(
-                                context,
-                                "Please Select Warehouse",
-                                "Ok",
-                                exitpopup,
-                                null);
-                          } else if (selectedPendingItems.isEmpty) {
-                            AppUtils.showSingleDialogPopup(context,
-                                "Please Select Items", "Ok", exitpopup, null);
-                          } else {
-                            // postitems();
-                            double currentQty = selectedPendingItems.fold(
-                                0, (sum, item) => sum + item.quantity);
-
-                            if (currentQty == 0) {
+                      Expanded(
+                          flex: 7,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              AppUtils.buildNormalText(
+                                text:
+                                    "Total Weighbridge Qty : ${totalQty.toStringAsFixed(3)}",
+                              ),
+                              AppUtils.buildNormalText(
+                                text:
+                                    "Entered Qty : ${getEnteredQty().toStringAsFixed(3)}",
+                              ),
+                              AppUtils.buildNormalText(
+                                text:
+                                    "Balance Qty :${getBalanceQty().toStringAsFixed(3)}",
+                              ),
+                            ],
+                          )),
+                      Expanded(
+                        flex: 3,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Appcolor.primary),
+                          onPressed: () {
+                            if (getwhsCode.isEmpty) {
                               AppUtils.showSingleDialogPopup(
                                   context,
-                                  "After enter the qty and click to submit button in keyboard!.",
+                                  "Please Select Warehouse",
+                                  "Ok",
+                                  exitpopup,
+                                  null);
+                            } else if (getwhsCode.isEmpty) {
+                              AppUtils.showSingleDialogPopup(
+                                  context,
+                                  "Please Select Warehouse",
+                                  "Ok",
+                                  exitpopup,
+                                  null);
+                            } else if (selectedPendingItems.isEmpty) {
+                              AppUtils.showSingleDialogPopup(context,
+                                  "Please Select Items", "Ok", exitpopup, null);
+                            } else {
+                              // Sum current quantity
+                              double currentQty = selectedPendingItems.fold(
+                                  0.0, (sum, item) => sum + item.quantity);
+
+                              // double roundedCurrentQty =
+                              //     double.parse(currentQty.toStringAsFixed(3));
+                              // double roundedTotalQty =
+                              //     double.parse(totalQty.toStringAsFixed(3));
+                              int scaledCurrent = (currentQty * 1000).round();
+                              int scaledTotal = (totalQty * 1000).round();
+
+                              if (scaledCurrent == 0) {
+                                AppUtils.showSingleDialogPopup(
+                                  context,
+                                  "After entering the qty, click the submit button on keyboard!",
                                   "Ok",
                                   onexitpopup,
-                                  null);
-                            }
-                            if (totalQty < currentQty) {
-                              AppUtils.showSingleDialogPopup(
+                                  null,
+                                );
+                              } else if (scaledCurrent != scaledTotal) {
+                                AppUtils.showSingleDialogPopup(
                                   context,
                                   "Total calculated weight does not match the weighbridge weight.",
                                   "Ok",
                                   onexitpopup,
-                                  null);
-                            } else {
-                              postitems();
+                                  null,
+                                );
+                              } else {
+                                postitems();
+                              }
                             }
-                          }
-                        },
-                        child: Row(
-                          children: [
-                            Text("Submit",
-                                style: TextStyle(
-                                    fontSize: 14, color: Colors.white)),
-                            SizedBox(width: 5),
-                            Icon(Icons.arrow_forward_ios,
-                                color: Colors.white, size: 12),
-                          ],
+                          },
+                          child: Row(
+                            children: [
+                              Text("Submit",
+                                  style: TextStyle(
+                                      fontSize: 14, color: Colors.white)),
+                              SizedBox(width: 5),
+                              Icon(Icons.arrow_forward_ios,
+                                  color: Colors.white, size: 12),
+                            ],
+                          ),
                         ),
-                      ),
+                      )
                     ],
                   ),
           ],
@@ -479,7 +510,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                               borderRadius: BorderRadius.circular(5.0),
                             ),
                           ),
-                          child: Text(totalQty.toStringAsFixed(2)),
+                          child: Text(totalQty.toStringAsFixed(3)),
                         ),
                       ),
                       ElevatedButton(
@@ -894,6 +925,26 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
     );
   }
 
+  double getEnteredQty() {
+    // return selectedPendingItems.fold<double>(
+    //   0,
+    //   (sum, item) => sum + (item.quantity ?? 0),
+    // );
+    const int scale = 1000; // because 3 decimals
+    int totalScaled = 0;
+
+    for (var item in selectedPendingItems) {
+      final qty = item.quantity ?? 0.0;
+      totalScaled += (qty * scale).toInt(); // keep exact integer
+    }
+
+    return totalScaled / scale;
+  }
+
+  double getBalanceQty() {
+    return totalQty - getEnteredQty();
+  }
+
   Widget _buildEditimageUploadSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
@@ -1168,7 +1219,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
             itemName: alterItemName,
             warehouse: "",
             warehousename: "",
-            quantity: double.parse(qty.toStringAsFixed(2)),
+            quantity: double.parse(qty.toStringAsFixed(3)),
             unitPrice: 0,
             controlPrice: 0,
             lMELevelFormula: 0,
@@ -1189,9 +1240,26 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
       );
       alterItemCode = "";
       alterItemName = "";
-      qtycontroller.add(TextEditingController(text: qty.toStringAsFixed(3)));
-      newqtycontroller.clear();
-      setState(() {});
+
+      setState(() {
+        qtycontroller.add(TextEditingController(text: qty.toStringAsFixed(3)));
+        newqtycontroller.clear();
+        getEnteredQty();
+        getBalanceQty();
+        selectItemkey.currentState?.clear();
+        alterItemCode = "";
+        alterItemName = "";
+
+        selectedinvoiceType = invoiceType.entries.firstWhere(
+          (entry) => entry.key == alterinvoiceType,
+          orElse: () => invoiceType.entries.first, // fallback to first option
+        );
+
+        selecteddocType = docType.entries.firstWhere(
+          (entry) => entry.key == alterdocType,
+          orElse: () => docType.entries.first, // fallback to first option
+        );
+      });
     });
   }
 
@@ -1210,6 +1278,15 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
     String formatted = DateFormat('yyyy-MM-dd').format(date);
 
     return formatted;
+  }
+
+  String cnvert3Digital(String value) {
+    try {
+      double parsedValue = double.parse(value);
+      return parsedValue.toStringAsFixed(3);
+    } catch (e) {
+      return "0.000"; // Return a default value in case of error
+    }
   }
 
   Widget _textFornField(String label, String hint, IconData icon,
@@ -1293,7 +1370,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                           children: [
                             Expanded(
                               child: Text(
-                                "${selectedPendingItems[index].itemCode}- ${selectedPendingItems[index].itemName} - Qty : ${selectedPendingItems[index].quantity}",
+                                "${selectedPendingItems[index].itemCode}- ${selectedPendingItems[index].itemName} - Qty : ${selectedPendingItems[index].quantity.toStringAsFixed(3)}",
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold, fontSize: 16),
@@ -1436,107 +1513,48 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                                   SizedBox(
                                     height: 4,
                                   ),
-                                  Focus(
-                                    onFocusChange: (hasFocus) {
-                                      if (!hasFocus) {
-                                        double oldValue =
-                                            selectedPendingItems[index]
-                                                .quantity;
-                                        double newValue = double.tryParse(
-                                                qtycontroller[index].text) ??
-                                            0.0;
+                                  TextFormField(
+                                    controller: qtycontroller[index],
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                            decimal: true), // ✅ allow decimals
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(RegExp(
+                                          r'^\d*\.?\d{0,3}')), // ✅ regex allows "123", "123.45"
+                                    ],
 
-                                        double currentQty =
-                                            selectedPendingItems.fold(
-                                          0,
-                                          (sum, item) => sum + item.quantity,
-                                        );
-                                        double sumofqty =
-                                            (currentQty - oldValue) + newValue;
-                                        if (totalQty < sumofqty) {
-                                          qtycontroller[index].text = "";
-                                          qtycontroller[index].clear();
-                                          AppUtils.showSingleDialogPopup(
-                                            context,
-                                            "Total calculated weight does not match the weighbridge weight.",
-                                            "Ok",
-                                            onexitpopup,
-                                            null,
-                                          );
-                                        } else {
-                                          qtycontroller[index].text =
-                                              newValue.toStringAsFixed(3);
+                                    onChanged: (value) {
+                                      if (value.isEmpty) {
+                                        setState(() {
                                           selectedPendingItems[index].quantity =
-                                              newValue;
-                                        }
+                                              0;
+                                          getEnteredQty();
+                                          getBalanceQty();
+                                        });
+                                      } else {
+                                        setState(() {
+                                          qtycontroller[index].text =
+                                              value.toString();
+                                          selectedPendingItems[index].quantity =
+                                              double.tryParse(value) ?? 0;
+                                          getEnteredQty();
+                                          getBalanceQty();
+                                        });
                                       }
                                     },
-                                    child: TextFormField(
-                                      controller: qtycontroller[index],
-                                      keyboardType:
-                                          const TextInputType.numberWithOptions(
-                                              decimal:
-                                                  true), // ✅ allow decimals
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.allow(RegExp(
-                                            r'^\d*\.?\d*')), // ✅ regex allows "123", "123.45"
-                                      ],
-                                      onFieldSubmitted: (value) {
-                                        double oldValue =
-                                            selectedPendingItems[index]
-                                                .quantity;
-                                        double newValue =
-                                            double.tryParse(value) ?? 0.0;
-
-                                        double currentQty =
-                                            selectedPendingItems.fold(
-                                          0,
-                                          (sum, item) => sum + item.quantity,
-                                        );
-                                        double sumofqty =
-                                            (currentQty - oldValue) + newValue;
-
-                                        if (totalQty < sumofqty) {
-                                          qtycontroller[index].text = "";
-                                          qtycontroller[index].clear();
-                                          AppUtils.showSingleDialogPopup(
-                                            context,
-                                            "Total calculated weight does not match the weighbridge weight.",
-                                            "Ok",
-                                            onexitpopup,
-                                            null,
-                                          );
-                                        } else {
-                                          qtycontroller[index].text =
-                                              newValue.toStringAsFixed(3);
-                                          selectedPendingItems[index].quantity =
-                                              newValue;
-                                        }
-                                      },
-                                      onEditingComplete: () {
-                                        final value = double.tryParse(
-                                                qtycontroller[index].text) ??
-                                            0.0;
-                                        // ✅ Force 3 decimals after editing
-                                        qtycontroller[index].text =
-                                            value.toStringAsFixed(3);
-                                        selectedPendingItems[index].quantity =
-                                            value;
-                                      },
-                                      decoration: InputDecoration(
-                                        contentPadding: EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 8),
-                                        focusedBorder: const OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                width: 1, color: Colors.grey)),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              color: Colors.black26, width: 1),
-                                        ),
-                                        disabledBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              color: Colors.black26, width: 1),
-                                        ),
+                                    decoration: InputDecoration(
+                                      contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 8),
+                                      focusedBorder: const OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                              width: 1, color: Colors.grey)),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: const BorderSide(
+                                            color: Colors.black26, width: 1),
+                                      ),
+                                      disabledBorder: OutlineInputBorder(
+                                        borderSide: const BorderSide(
+                                            color: Colors.black26, width: 1),
                                       ),
                                     ),
                                   ),
@@ -1610,7 +1628,8 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                     getTicketNo,
                     filter: filter,
                   ),
-                  itemAsString: (NewItemModel item) => item.itemName.toString(),
+                  itemAsString: (NewItemModel item) =>
+                      "${item.itemCode} - ${item.itemName}",
                   dropdownDecoratorProps: DropDownDecoratorProps(
                     dropdownSearchDecoration: InputDecoration(
                       contentPadding: EdgeInsets.fromLTRB(5.0, 10, 5.0, 2),
@@ -1755,22 +1774,8 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
                                     onexitpopup,
                                     null);
                               } else {
-                                double currentQty = selectedPendingItems.fold(
-                                    0, (sum, item) => sum + item.quantity);
-                                double addqty =
-                                    double.parse(newqtycontroller.text) ?? 0;
-                                double sumofqty = currentQty + addqty;
-                                if (totalQty < sumofqty) {
-                                  AppUtils.showSingleDialogPopup(
-                                      context,
-                                      "Total calculated weight does not match the weighbridge weight.",
-                                      "Ok",
-                                      onexitpopup,
-                                      null);
-                                } else {
-                                  addManualItem(
-                                      double.parse(newqtycontroller.text) ?? 0);
-                                }
+                                addManualItem(
+                                    double.parse(newqtycontroller.text) ?? 0);
                               }
                             },
                             child: Text("Add")))
@@ -1885,7 +1890,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
     map['device'] = "Mobile";
     map['files'] = '';
     map['remark'] = "";
-    map['cardCode'] = getsalespersonCode;
+    map['cardCode'] = getsupplierId;
     map['cardName'] = getsupplierName;
     map['wightFromDate'] = weightfromdatecontroller.text;
     map['wightToDate'] = weighttodatecontroller.text;
@@ -1911,6 +1916,7 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
     map['weighLocation'] = getwaybridgeCode;
     map['whsCode'] = getwhsCode;
     map['baseLine'] = 0;
+    map['formName'] = "unloading";
 
     //log((jsonEncode(dataToSend)));
 
@@ -1998,9 +2004,6 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
               .toList();
 
           if (editYarnList.isNotEmpty) {
-            getsupplierId = editYarnList[0].cardCode.toString();
-            getsupplierName = editYarnList[0].customerName.toString();
-
             pickupNoController.text = editYarnList[0].vechileNo.toString();
             weightfromdatecontroller.text =
                 editYarnList[0].wightFromDate.toString();
@@ -2015,6 +2018,8 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
             getsalespersonCode = editYarnList[0].slpCode.toString();
             getsalespersonName = editYarnList[0].slpName.toString();
 
+            getsupplierId = editYarnList[0].cardCode.toString();
+            getsupplierName = editYarnList[0].customerName.toString();
             selectedSupplier =
                 SuppplierModel(id: getsupplierId, value: getsupplierName);
 
@@ -2064,6 +2069,8 @@ class _YardUnloadingPageState extends State<YardUnloadingPage> {
 
             selectedWayTicketno = WeighTicketNumberModel(
                 weighTicketNo: editYarnList[0].wightNos.toString());
+
+            getTicketNo = editYarnList[0].wightNos.toString();
 
             selectedWaybridge = WeighLocationModel(
                 id: getwaybridgeCode, value: getwaybridgeName);

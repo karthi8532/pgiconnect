@@ -6,6 +6,7 @@ class YardUnloadAllModel {
   final String? weighLocation;
   final String documentType;
   final String invoiceType;
+  String weigTicketNum;
 
   YardUnloadAllModel({
     required this.yardUnloading,
@@ -15,6 +16,7 @@ class YardUnloadAllModel {
     this.weighLocation,
     required this.documentType,
     required this.invoiceType,
+    required this.weigTicketNum,
   });
 
   factory YardUnloadAllModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class YardUnloadAllModel {
       weighLocation: json['WeighLocation'], // nullable
       documentType: json['documentType'] ?? '',
       invoiceType: json['invoiceType'] ?? '',
+      weigTicketNum: json['weigTicketNum'] ?? '',
     );
   }
 }

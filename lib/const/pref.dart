@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:pgiconnect/model/loginModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Prefs {
@@ -45,6 +48,12 @@ class Prefs {
   static Future<bool> setWeighLocationName(String key, String value) async =>
       await _prefs.setString(key, value);
 
+  static Future<bool> setFormList(String key, List<FormItem> list) async {
+    List<Map<String, String>> formMaps = list.map((f) => f.toMap()).toList();
+    String jsonString = jsonEncode(formMaps);
+    return await _prefs.setString(key, jsonString);
+  }
+
   //getsuserName
   static bool? getLoggedIn(String key) => _prefs.getBool(key);
 
@@ -63,6 +72,17 @@ class Prefs {
 
   static String? getWeighLocationID(String key) => _prefs.getString(key);
   static String? getWeighLocationName(String key) => _prefs.getString(key);
+
+  static List<FormItem> getFormList(String key) {
+    String? jsonString = _prefs.getString(key);
+    if (jsonString != null) {
+      List<dynamic> jsonData = jsonDecode(jsonString);
+      return jsonData
+          .map((e) => FormItem.fromMap(Map<String, String>.from(e)))
+          .toList();
+    }
+    return [];
+  }
 
   //deletes..
   static Future<bool> remove(String key) async => await _prefs.remove(key);

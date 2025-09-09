@@ -4,13 +4,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pgiconnect/const/pref.dart';
+import 'package:pgiconnect/model/loginModel.dart';
+import 'package:pgiconnect/screens/changepassword.dart';
 import 'package:pgiconnect/screens/dashboard/approval/alllclaimlist.dart';
 import 'package:pgiconnect/screens/dashboard/pettycash/pettycashistall.dart';
 import 'package:pgiconnect/screens/login/login/loginpage.dart';
 import 'package:pgiconnect/screens/login/utils/app_utils.dart';
 import 'package:pgiconnect/screens/pricelistupdatescreen/pendingpricelist.dart';
-import 'package:pgiconnect/screens/profile/profilepage.dart';
-import 'package:pgiconnect/screens/yardunloading/yardunloading.dart';
 import 'package:pgiconnect/screens/yardunloading/yardunloadingselectionlist.dart';
 import 'package:pgiconnect/screens/yarnselectionlist.dart';
 import 'package:pgiconnect/service/appcolor.dart';
@@ -23,24 +23,70 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  bool canLoadYard = false;
+  bool canunload = false;
+  bool canClaim = false;
+  bool canpriceupdate = false;
+  bool hasAllAccess = false;
+  List<int> accessibleIndexes = [];
   List imageSrc = [
     "assets/icons/loading.png",
     "assets/icons/unloading.png",
     "assets/icons/settlementicon.png",
     "assets/icons/wealth.png",
-    "assets/icons/wealth.png",
+    "assets/icons/padlock.png",
     "assets/icons/logout.png",
   ];
   List titles = [
     "Yard Loading",
     "Yard Unloading",
     "Claim Approval",
-    "Petty Cash",
     "Price List Update",
+    "Change Password",
     "Logout",
   ];
   bool isDrawerOpen = false;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  @override
+  void initState() {
+    _loadFormAccess();
+
+    super.initState();
+  }
+
+  void _loadFormAccess() {
+    List<FormItem> forms = Prefs.getFormList("forms");
+
+    hasAllAccess = forms.any((f) => f.formId.toUpperCase() == "ALL");
+
+    setState(() {
+      canLoadYard = hasAllAccess || forms.any((f) => f.formId == "loading");
+      canunload = hasAllAccess || forms.any((f) => f.formId == "unloading");
+      canClaim = hasAllAccess || forms.any((f) => f.formId == "claim");
+      canpriceupdate =
+          hasAllAccess || forms.any((f) => f.formId == "priceupdate");
+    });
+    if (hasAllAccess) {
+      if (canLoadYard) accessibleIndexes.add(0);
+      if (canunload) accessibleIndexes.add(1);
+      if (canClaim) accessibleIndexes.add(2);
+      if (canpriceupdate) accessibleIndexes.add(3);
+      accessibleIndexes.add(4);
+      accessibleIndexes.add(5);
+    } else {
+      if (canLoadYard) accessibleIndexes.add(0);
+      if (canunload) accessibleIndexes.add(1);
+      if (canClaim) accessibleIndexes.add(2);
+      if (canpriceupdate) accessibleIndexes.add(3);
+      accessibleIndexes.add(4);
+      accessibleIndexes.add(5);
+    }
+
+    print(
+      "canLoadYard: $canLoadYard, canunload: $canunload, canClaim: $canClaim,  canpriceupdate: $canpriceupdate",
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
@@ -89,96 +135,85 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   padding: const EdgeInsets.all(8.0),
                   child: AppUtils.buildNormalText(text: "Menus"),
                 ),
-                ListTile(
-                  leading: Image.asset(
-                    'assets/icons/loading.png',
-                    width: 20,
-                    height: 20,
+                if (canLoadYard || hasAllAccess)
+                  ListTile(
+                    leading: Image.asset(
+                      'assets/icons/loading.png',
+                      width: 20,
+                      height: 20,
+                    ),
+                    title: const Text(
+                      'Yard Loading',
+                      style: TextStyle(fontSize: 14.0),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              builder: (context) => YarnSelectionPage()));
+                    },
                   ),
-                  title: const Text(
-                    'Yard Loading',
-                    style: TextStyle(fontSize: 14.0),
+
+                if (canunload || hasAllAccess)
+                  ListTile(
+                    leading: Image.asset(
+                      'assets/icons/loading.png',
+                      width: 20,
+                      height: 20,
+                    ),
+                    title: const Text(
+                      'Yard Unloading',
+                      style: TextStyle(fontSize: 14.0),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              builder: (context) =>
+                                  YardUnloadingSelectionPage()));
+                    },
                   ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                            builder: (context) => YarnSelectionPage()));
-                  },
-                ),
-                ListTile(
-                  leading: Image.asset(
-                    'assets/icons/loading.png',
-                    width: 20,
-                    height: 20,
+                if (canClaim || hasAllAccess)
+                  ListTile(
+                    leading: Image.asset(
+                      'assets/icons/settlementicon.png',
+                      width: 20,
+                      height: 20,
+                    ),
+                    title: const Text(
+                      'Claim Approval',
+                      style: TextStyle(fontSize: 14.0),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              builder: (context) => ClaimListPage()));
+                    },
                   ),
-                  title: const Text(
-                    'Yard Unloading',
-                    style: TextStyle(fontSize: 14.0),
+
+                if (canpriceupdate || hasAllAccess)
+                  ListTile(
+                    leading: Image.asset(
+                      'assets/icons/wealth.png',
+                      width: 20,
+                      height: 20,
+                    ),
+                    title: const Text(
+                      'Price List Update',
+                      style: TextStyle(fontSize: 14.0),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              builder: (context) => PendingPriceList()));
+                    },
                   ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                            builder: (context) =>
-                                YardUnloadingSelectionPage()));
-                  },
-                ),
-                ListTile(
-                  leading: Image.asset(
-                    'assets/icons/settlementicon.png',
-                    width: 20,
-                    height: 20,
-                  ),
-                  title: const Text(
-                    'Settlement',
-                    style: TextStyle(fontSize: 14.0),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                            builder: (context) => ClaimListPage()));
-                  },
-                ),
-                ListTile(
-                  leading: Image.asset(
-                    'assets/icons/wealth.png',
-                    width: 20,
-                    height: 20,
-                  ),
-                  title: const Text(
-                    'Petty Cash',
-                    style: TextStyle(fontSize: 14.0),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                            builder: (context) => PettryCashList()));
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(
-                    CupertinoIcons.repeat,
-                    size: 20,
-                  ),
-                  title: const Text(
-                    'Price List Update',
-                    style: TextStyle(fontSize: 14.0),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                            builder: (context) => PendingPriceList()));
-                  },
-                ),
                 // ListTile(
                 //   leading: Image.asset(
                 //     'assets/icons/priceupdate.png',
@@ -193,6 +228,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 //     Navigator.pop(context);
                 //   },
                 // ),
+                ListTile(
+                  leading: Image.asset(
+                    'assets/icons/padlock.png',
+                    width: 20,
+                    height: 20,
+                  ),
+                  title: const Text(
+                    'Change Password',
+                    style: TextStyle(fontSize: 14.0),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                            builder: (context) => ChangePassword()));
+                  },
+                ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: AppUtils.buildNormalText(text: "Settings"),
@@ -277,14 +330,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           padding: EdgeInsets.only(left: 16, right: 16, bottom: 16),
           child: GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 1.3,
+                crossAxisCount: MediaQuery.of(context).size.width > 600
+                    ? 3
+                    : 2, // ✅ 4 columns on tablets
+                childAspectRatio: 1.2,
                 crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
               ),
-              itemCount: imageSrc.length,
+              itemCount: accessibleIndexes.length,
               shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
+              physics: BouncingScrollPhysics(),
+              itemBuilder: (context, i) {
+                int index = accessibleIndexes[i];
                 return GestureDetector(
                   onTap: () {
                     if (index == 0) {
@@ -311,14 +368,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Navigator.push(
                           context,
                           CupertinoPageRoute(
-                              builder: (context) => PettryCashList()));
+                              builder: (context) => PendingPriceList()));
                     }
-
                     if (index == 4) {
                       Navigator.push(
                           context,
                           CupertinoPageRoute(
-                              builder: (context) => PendingPriceList()));
+                              builder: (context) => ChangePassword()));
                     }
                     if (index == 5) {
                       logout();

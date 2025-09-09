@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pgiconnect/const/pref.dart';
-import 'package:pgiconnect/data/apiservice.dart';
-import 'package:pgiconnect/screens/login/login/loginpage.dart';
 import 'package:pgiconnect/screens/splash.dart';
-import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations(
-      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
   await Prefs.init();
   runApp(const MyApp());
 }

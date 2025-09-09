@@ -861,21 +861,560 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
             isDense: true));
   }
 
+  // Widget itemsswidgets() {
+  //   return SingleChildScrollView(
+  //     child: Column(
+  //       children: [
+  //         SizedBox(height: 10),
+  //         selectedPendingItems.isNotEmpty
+  //             ? ListView.builder(
+  //                 shrinkWrap: true,
+  //                 physics: NeverScrollableScrollPhysics(),
+  //                 itemCount: selectedPendingItems.length,
+  //                 itemBuilder: (BuildContext context, int index) {
+  //                   selectedWhs =
+  //                       WarehouseModel(id: getwhsCode, value: getWhsName);
+  //                   final bool isLME =
+  //                       selectedPendingItems[index].invoiceType == 'LME';
+  //                   try {
+  //                     if (selectedPendingItems[index].documentType.isEmpty) {
+  //                       selectedPendingItems[index].documentType =
+  //                           "Provisional";
+  //                     }
+
+  //                     selecteddocType = docType.entries.firstWhere(
+  //                       (entry) =>
+  //                           entry.key ==
+  //                           selectedPendingItems[index].documentType,
+  //                     );
+  //                   } catch (e) {
+  //                     // If not found, assign default
+  //                     selecteddocType =
+  //                         const MapEntry("Provisional", "Provisional");
+  //                     selectedPendingItems[index].documentType = "Provisional";
+  //                   }
+  //                   try {
+  //                     if (selectedPendingItems[index].invoiceType.isEmpty) {
+  //                       selectedPendingItems[index].invoiceType = "LME";
+  //                     }
+
+  //                     selectedinvoiceType = invoiceType.entries.firstWhere(
+  //                       (entry) =>
+  //                           entry.key ==
+  //                           selectedPendingItems[index].invoiceType,
+  //                     );
+  //                   } catch (e) {
+  //                     // If not found, assign default
+  //                     selectedinvoiceType = const MapEntry("LME", "LME");
+  //                     selectedPendingItems[index].invoiceType = "LME";
+  //                   }
+  //                   return Theme(
+  //                     data: Theme.of(context)
+  //                         .copyWith(dividerColor: Colors.transparent),
+  //                     child: ExpansionTile(
+  //                       key: Key(index ==
+  //                               expandedIndex // different key when state changes forces rebuild
+  //                           ? 'expanded_$index'
+  //                           : 'collapsed_$index'),
+  //                       initiallyExpanded: expandedIndex == index,
+  //                       onExpansionChanged: (expanded) {
+  //                         setState(() {
+  //                           expandedIndex = expanded ? index : null;
+  //                         });
+  //                       },
+
+  //                       //heading
+  //                       backgroundColor: Colors.white,
+  //                       title: Text(
+  //                         "${selectedPendingItems[index].itemCode}- ${selectedPendingItems[index].itemName} - Qty ${selectedPendingItems[index].quantity}",
+  //                         style: TextStyle(
+  //                             fontWeight: FontWeight.bold, fontSize: 16),
+  //                       ),
+  //                       children: [
+  //                         Card(
+  //                           margin: const EdgeInsets.only(bottom: 10),
+  //                           color: Colors.white,
+  //                           child: Padding(
+  //                             padding: const EdgeInsets.all(8),
+  //                             child: Column(
+  //                               crossAxisAlignment: CrossAxisAlignment.start,
+  //                               children: [
+  //                                 Row(
+  //                                   children: [
+  //                                     Expanded(
+  //                                       flex: 4,
+  //                                       child: AppUtils.buildNormalText(
+  //                                           text: "Invoice Type"),
+  //                                     ),
+  //                                     const SizedBox(width: 5),
+  //                                     Expanded(
+  //                                       flex: 3,
+  //                                       child: AppUtils.buildNormalText(
+  //                                           text: "Doc Type"),
+  //                                     ),
+  //                                   ],
+  //                                 ),
+  //                                 const SizedBox(height: 5),
+  //                                 Row(
+  //                                   children: [
+  //                                     Expanded(
+  //                                         flex: 5,
+  //                                         child: DropdownSearch<
+  //                                             MapEntry<String, String>>(
+  //                                           enabled: true,
+  //                                           selectedItem: selectedinvoiceType,
+  //                                           items: invoiceType.entries.toList(),
+  //                                           itemAsString: (entry) =>
+  //                                               entry.value,
+  //                                           onChanged: (entry) {
+  //                                             if (entry != null) {
+  //                                               setState(() {
+  //                                                 selectedPendingItems[index]
+  //                                                     .invoiceType = entry.key;
+  //                                               });
+  //                                             }
+  //                                           },
+  //                                         )),
+  //                                     const SizedBox(width: 5),
+  //                                     Expanded(
+  //                                       flex: 5,
+  //                                       child: DropdownSearch<
+  //                                           MapEntry<String, String>>(
+  //                                         enabled: true,
+  //                                         selectedItem: selecteddocType,
+  //                                         items: docType.entries.toList(),
+  //                                         itemAsString: (entry) => entry.value,
+  //                                         onChanged: (entry) {
+  //                                           if (entry != null) {
+  //                                             setState(() {
+  //                                               selecteddocType = entry;
+  //                                               selectedPendingItems[index]
+  //                                                   .documentType = entry.key;
+  //                                             });
+  //                                           }
+  //                                         },
+  //                                         popupProps: PopupProps.menu(
+  //                                             showSearchBox: true),
+  //                                         dropdownDecoratorProps:
+  //                                             DropDownDecoratorProps(
+  //                                           dropdownSearchDecoration:
+  //                                               InputDecoration(
+  //                                             contentPadding:
+  //                                                 EdgeInsets.symmetric(
+  //                                                     horizontal: 10,
+  //                                                     vertical: 10),
+  //                                             border: OutlineInputBorder(),
+  //                                           ),
+  //                                         ),
+  //                                       ),
+  //                                     ),
+  //                                   ],
+  //                                 ),
+  //                                 const SizedBox(height: 5),
+  //                                 // Item Name (Always show)
+
+  //                                 AppUtils.buildNormalText(text: "Item Name"),
+  //                                 const SizedBox(height: 5),
+  //                                 TextFormField(
+  //                                   initialValue:
+  //                                       selectedPendingItems[index].itemName ??
+  //                                           '',
+  //                                   readOnly: true,
+  //                                   decoration: const InputDecoration(
+  //                                     contentPadding: EdgeInsets.symmetric(
+  //                                         horizontal: 8, vertical: 8),
+  //                                     border: OutlineInputBorder(),
+  //                                   ),
+  //                                 ),
+
+  //                                 const SizedBox(height: 10),
+  //                                 Row(children: [
+  //                                   Expanded(
+  //                                       flex: 5,
+  //                                       child: AppUtils.buildNormalText(
+  //                                           text: "Qty")),
+  //                                   Expanded(
+  //                                       flex: 5,
+  //                                       child: AppUtils.buildNormalText(
+  //                                           text: "Unit Price")),
+  //                                 ]),
+  //                                 const SizedBox(height: 5),
+  //                                 Row(children: [
+  //                                   Expanded(
+  //                                     flex: 5,
+  //                                     child: TextFormField(
+  //                                       initialValue:
+  //                                           selectedPendingItems[index]
+  //                                               .quantity
+  //                                               .toString(),
+  //                                       keyboardType: const TextInputType
+  //                                           .numberWithOptions(
+  //                                           decimal: true, signed: false),
+  //                                       inputFormatters: [
+  //                                         // allows: digits + single decimal point
+  //                                         FilteringTextInputFormatter.allow(
+  //                                             RegExp(r'^\d*\.?\d*$')),
+  //                                       ],
+  //                                       onChanged: (value) {
+  //                                         setState(() {
+  //                                           selectedPendingItems[index]
+  //                                                   .quantity =
+  //                                               double.tryParse(value) ?? 0.0;
+  //                                           selectedPendingItems[index].total =
+  //                                               selectedPendingItems[index]
+  //                                                       .quantity *
+  //                                                   selectedPendingItems[index]
+  //                                                       .unitPrice;
+  //                                         });
+  //                                       },
+  //                                       decoration: const InputDecoration(
+  //                                           border: OutlineInputBorder()),
+  //                                     ),
+  //                                   ),
+  //                                   const SizedBox(width: 5),
+  //                                   Expanded(
+  //                                     flex: 5,
+  //                                     child: TextFormField(
+  //                                       initialValue:
+  //                                           selectedPendingItems[index]
+  //                                               .unitPrice
+  //                                               .toString(),
+  //                                       keyboardType: const TextInputType
+  //                                           .numberWithOptions(
+  //                                           decimal: true, signed: false),
+  //                                       inputFormatters: [
+  //                                         // allows: digits + single decimal point
+  //                                         FilteringTextInputFormatter.allow(
+  //                                             RegExp(r'^\d*\.?\d*$')),
+  //                                       ],
+  //                                       onChanged: (value) {
+  //                                         setState(() {
+  //                                           selectedPendingItems[index]
+  //                                                   .unitPrice =
+  //                                               double.tryParse(value) ?? 0.0;
+  //                                           selectedPendingItems[index].total =
+  //                                               selectedPendingItems[index]
+  //                                                       .quantity *
+  //                                                   selectedPendingItems[index]
+  //                                                       .unitPrice;
+  //                                         });
+  //                                       },
+  //                                       decoration: const InputDecoration(
+  //                                           border: OutlineInputBorder()),
+  //                                     ),
+  //                                   ),
+  //                                 ]),
+
+  //                                 const SizedBox(height: 10),
+  //                                 AppUtils.buildNormalText(
+  //                                     text: "Control Price"),
+  //                                 const SizedBox(height: 5),
+  //                                 TextFormField(
+  //                                   readOnly: true,
+  //                                   initialValue: selectedPendingItems[index]
+  //                                       .controlPrice
+  //                                       .toString(),
+  //                                   decoration: InputDecoration(
+  //                                     filled: true,
+  //                                     fillColor: Colors.grey.shade200,
+  //                                     border: const OutlineInputBorder(),
+  //                                   ),
+  //                                 ),
+
+  //                                 const SizedBox(height: 10),
+  //                                 Row(children: [
+  //                                   Expanded(
+  //                                       flex: 3,
+  //                                       child: AppUtils.buildNormalText(
+  //                                           text: "PO Num")),
+  //                                   Expanded(
+  //                                       flex: 3,
+  //                                       child: AppUtils.buildNormalText(
+  //                                           text: "PO Line")),
+  //                                 ]),
+  //                                 const SizedBox(height: 5),
+  //                                 Row(children: [
+  //                                   Expanded(
+  //                                     flex: 3,
+  //                                     child: DropdownSearch<PoModel>(
+  //                                       key: poKey,
+  //                                       selectedItem: selectedPo,
+  //                                       asyncItems: (filter) =>
+  //                                           ApiService.getpolists(
+  //                                         Prefs.getDBName('DBName'),
+  //                                         Prefs.getBranchID('BranchID'),
+  //                                         getsupplierId,
+  //                                         filter: filter,
+  //                                       ),
+  //                                       itemAsString: (item) =>
+  //                                           item.poNumber.toString(),
+  //                                       onChanged: (item) {
+  //                                         if (item != null) {
+  //                                           setState(() {
+  //                                             selectedPendingItems[index]
+  //                                                     .poNumber =
+  //                                                 item.poNumber.toString();
+  //                                             selectedPendingItems[index]
+  //                                                     .pOEntry =
+  //                                                 item.poEntry.toString();
+  //                                             selectedPendingItems[index]
+  //                                                     .poLine =
+  //                                                 item.poLine!.toInt();
+  //                                           });
+  //                                         }
+  //                                       },
+  //                                       dropdownDecoratorProps:
+  //                                           DropDownDecoratorProps(
+  //                                         dropdownSearchDecoration:
+  //                                             InputDecoration(
+  //                                           contentPadding:
+  //                                               EdgeInsets.symmetric(
+  //                                                   horizontal: 10,
+  //                                                   vertical: 10),
+  //                                           border: OutlineInputBorder(),
+  //                                         ),
+  //                                       ),
+  //                                     ),
+  //                                   ),
+  //                                   const SizedBox(width: 5),
+  //                                   Expanded(
+  //                                     flex: 3,
+  //                                     child: DropdownSearch<PoLineModel>(
+  //                                       key: poLineKey,
+  //                                       selectedItem: selectedpoLine,
+  //                                       asyncItems: (filter) =>
+  //                                           ApiService.getpolinenumber(
+  //                                         Prefs.getDBName('DBName'),
+  //                                         Prefs.getBranchID('BranchID'),
+  //                                         getsupplierId,
+  //                                         filter: filter,
+  //                                         selectedPendingItems[index].pOEntry,
+  //                                       ),
+  //                                       itemAsString: (item) =>
+  //                                           item.value.toString(),
+  //                                       dropdownDecoratorProps:
+  //                                           DropDownDecoratorProps(
+  //                                         dropdownSearchDecoration:
+  //                                             InputDecoration(
+  //                                           contentPadding:
+  //                                               EdgeInsets.symmetric(
+  //                                                   horizontal: 10,
+  //                                                   vertical: 10),
+  //                                           border: OutlineInputBorder(),
+  //                                         ),
+  //                                       ),
+  //                                       onChanged: (item) {
+  //                                         setState(() {
+  //                                           selectedpoLine = item;
+  //                                         });
+  //                                       },
+  //                                     ),
+  //                                   ),
+  //                                 ]),
+
+  //                                 const SizedBox(height: 10),
+
+  //                                 AppUtils.buildNormalText(text: "Total"),
+  //                                 TextFormField(
+  //                                   readOnly: true,
+  //                                   controller: TextEditingController(
+  //                                     text: selectedPendingItems[index]
+  //                                         .total
+  //                                         .toStringAsFixed(2),
+  //                                   ),
+  //                                   decoration: InputDecoration(
+  //                                     filled: true,
+  //                                     fillColor: Colors.grey.shade200,
+  //                                     border: const OutlineInputBorder(),
+  //                                   ),
+  //                                 ),
+
+  //                                 // 🔽 LME-Specific Section
+  //                                 if (isLME) ...[
+  //                                   const SizedBox(height: 10),
+  //                                   Row(children: [
+  //                                     Expanded(
+  //                                         flex: 3,
+  //                                         child: AppUtils.buildNormalText(
+  //                                             text: "LME Level %")),
+  //                                     Expanded(
+  //                                         flex: 3,
+  //                                         child: AppUtils.buildNormalText(
+  //                                             text: "Control %")),
+  //                                   ]),
+  //                                   const SizedBox(height: 5),
+  //                                   Row(children: [
+  //                                     Expanded(
+  //                                       flex: 3,
+  //                                       child: TextFormField(
+  //                                         initialValue:
+  //                                             selectedPendingItems[index]
+  //                                                 .lMELevelFormula
+  //                                                 .toString(),
+  //                                         onChanged: (value) {
+  //                                           selectedPendingItems[index]
+  //                                                   .lMELevelFormula =
+  //                                               double.tryParse(value) ?? 0.0;
+  //                                         },
+  //                                         decoration: const InputDecoration(
+  //                                             border: OutlineInputBorder()),
+  //                                       ),
+  //                                     ),
+  //                                     const SizedBox(width: 5),
+  //                                     Expanded(
+  //                                       flex: 3,
+  //                                       child: TextFormField(
+  //                                         readOnly: true,
+  //                                         initialValue:
+  //                                             selectedPendingItems[index]
+  //                                                 .controlPercentage
+  //                                                 .toString(),
+  //                                         decoration: InputDecoration(
+  //                                           filled: true,
+  //                                           fillColor: Colors.grey.shade200,
+  //                                           border: const OutlineInputBorder(),
+  //                                         ),
+  //                                       ),
+  //                                     ),
+  //                                   ]),
+  //                                   const SizedBox(height: 10),
+  //                                   Row(children: [
+  //                                     Expanded(
+  //                                         flex: 4,
+  //                                         child: AppUtils.buildNormalText(
+  //                                             text: "LME Amount")),
+  //                                     Expanded(
+  //                                         flex: 3,
+  //                                         child: AppUtils.buildNormalText(
+  //                                             text: "LME Fix Date")),
+  //                                     Expanded(
+  //                                         flex: 3,
+  //                                         child: AppUtils.buildNormalText(
+  //                                             text: "Contango Amt")),
+  //                                   ]),
+  //                                   const SizedBox(height: 5),
+  //                                   Row(children: [
+  //                                     Expanded(
+  //                                       flex: 4,
+  //                                       child: TextFormField(
+  //                                         initialValue:
+  //                                             selectedPendingItems[index]
+  //                                                 .lMEAmount
+  //                                                 .toString(),
+  //                                         onChanged: (value) {
+  //                                           selectedPendingItems[index]
+  //                                                   .lMEAmount =
+  //                                               double.tryParse(value) ?? 0.0;
+  //                                         },
+  //                                         decoration: const InputDecoration(
+  //                                             border: OutlineInputBorder()),
+  //                                       ),
+  //                                     ),
+  //                                     const SizedBox(width: 5),
+  //                                     Expanded(
+  //                                       flex: 3,
+  //                                       child: TextFormField(
+  //                                         readOnly: true,
+  //                                         controller: TextEditingController(
+  //                                           text: selectedPendingItems[index]
+  //                                                   .lMEFixationDate ??
+  //                                               '',
+  //                                         ),
+  //                                         onTap: () => _selectDate(index),
+  //                                         decoration: const InputDecoration(
+  //                                             border: OutlineInputBorder()),
+  //                                       ),
+  //                                     ),
+  //                                     const SizedBox(width: 5),
+  //                                     Expanded(
+  //                                       flex: 3,
+  //                                       child: TextFormField(
+  //                                         initialValue:
+  //                                             selectedPendingItems[index]
+  //                                                 .contango
+  //                                                 .toString(),
+  //                                         onChanged: (value) {
+  //                                           selectedPendingItems[index]
+  //                                                   .contango =
+  //                                               int.tryParse(value) ?? 0;
+  //                                         },
+  //                                         decoration: const InputDecoration(
+  //                                             border: OutlineInputBorder()),
+  //                                       ),
+  //                                     ),
+  //                                   ]),
+  //                                   const SizedBox(height: 10),
+  //                                   AppUtils.buildNormalText(
+  //                                       text: "Hedging Required"),
+  //                                   DropdownSearch<MapEntry<String, String>>(
+  //                                     selectedItem:
+  //                                         headingType.entries.firstWhere(
+  //                                       (entry) =>
+  //                                           entry.key.toUpperCase() ==
+  //                                           (selectedPendingItems[index]
+  //                                                       .hedgingRequired ??
+  //                                                   '')
+  //                                               .toUpperCase(),
+  //                                       orElse: () => const MapEntry("N", "No"),
+  //                                     ),
+  //                                     items: headingType.entries.toList(),
+  //                                     itemAsString: (entry) => entry.value,
+  //                                     onChanged: (entry) {
+  //                                       if (entry != null) {
+  //                                         setState(() {
+  //                                           selectedPendingItems[index]
+  //                                               .hedgingRequired = entry.key;
+  //                                         });
+  //                                       }
+  //                                     },
+  //                                   )
+  //                                 ],
+  //                                 AppUtils.buildNormalText(
+  //                                     text: "Purchase Remarks"),
+  //                                 const SizedBox(height: 5),
+  //                                 TextFormField(
+  //                                   initialValue: selectedPendingItems[index]
+  //                                       .purchaseRemarks
+  //                                       .toString(),
+  //                                   onChanged: (value) {
+  //                                     selectedPendingItems[index]
+  //                                         .purchaseRemarks = value;
+  //                                   },
+  //                                   decoration: const InputDecoration(
+  //                                       border: OutlineInputBorder()),
+  //                                 ),
+
+  //                                 const SizedBox(height: 10),
+  //                               ],
+  //                             ),
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   );
+  //                 })
+  //             : Center(
+  //                 child: Text("No Data!"),
+  //               ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
   Widget itemsswidgets() {
     return SingleChildScrollView(
       child: Column(
         children: [
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           selectedPendingItems.isNotEmpty
               ? ListView.builder(
                   shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: selectedPendingItems.length,
                   itemBuilder: (BuildContext context, int index) {
                     selectedWhs =
                         WarehouseModel(id: getwhsCode, value: getWhsName);
-                    final bool isLME =
-                        selectedPendingItems[index].invoiceType == 'LME';
+
                     try {
                       if (selectedPendingItems[index].documentType.isEmpty) {
                         selectedPendingItems[index].documentType =
@@ -888,11 +1427,11 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                             selectedPendingItems[index].documentType,
                       );
                     } catch (e) {
-                      // If not found, assign default
                       selecteddocType =
                           const MapEntry("Provisional", "Provisional");
                       selectedPendingItems[index].documentType = "Provisional";
                     }
+
                     try {
                       if (selectedPendingItems[index].invoiceType.isEmpty) {
                         selectedPendingItems[index].invoiceType = "LME";
@@ -900,20 +1439,43 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
 
                       selectedinvoiceType = invoiceType.entries.firstWhere(
                         (entry) =>
-                            entry.key ==
-                            selectedPendingItems[index].invoiceType,
+                            entry.key.toLowerCase().trim() ==
+                            (selectedPendingItems[index].invoiceType ?? '')
+                                .toLowerCase()
+                                .trim(),
+                        orElse: () =>
+                            const MapEntry("LME", "LME"), // 👈 fallback
                       );
                     } catch (e) {
-                      // If not found, assign default
                       selectedinvoiceType = const MapEntry("LME", "LME");
                       selectedPendingItems[index].invoiceType = "LME";
                     }
+
+                    // normalize values for condition checks
+                    final String selectinvoiceType =
+                        (selectedPendingItems[index].invoiceType ?? '')
+                            .trim()
+                            .toLowerCase();
+                    final String selecteddocTypeValue =
+                        (selectedPendingItems[index].documentType ?? '')
+                            .trim()
+                            .toLowerCase();
+
+                    final bool isLME = selectinvoiceType == 'lme';
+                    final bool isFinalDoc = selecteddocTypeValue == 'final';
+                    final bool isProvisionalDoc =
+                        selecteddocTypeValue == 'provisional';
+                    final bool isNormal = selecteddocTypeValue == 'normal';
+                    print('isLME $isLME');
+                    print('isFinalDoc $isFinalDoc');
+                    print('isProvisionalDoc $isProvisionalDoc');
+                    print('isNormal $isNormal');
+
                     return Theme(
                       data: Theme.of(context)
                           .copyWith(dividerColor: Colors.transparent),
                       child: ExpansionTile(
-                        key: Key(index ==
-                                expandedIndex // different key when state changes forces rebuild
+                        key: Key(index == expandedIndex
                             ? 'expanded_$index'
                             : 'collapsed_$index'),
                         initiallyExpanded: expandedIndex == index,
@@ -922,12 +1484,10 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                             expandedIndex = expanded ? index : null;
                           });
                         },
-
-                        //heading
                         backgroundColor: Colors.white,
                         title: Text(
                           "${selectedPendingItems[index].itemCode}- ${selectedPendingItems[index].itemName} - Qty ${selectedPendingItems[index].quantity}",
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         children: [
@@ -942,39 +1502,37 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                                   Row(
                                     children: [
                                       Expanded(
-                                        flex: 4,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Invoice Type"),
-                                      ),
+                                          flex: 4,
+                                          child: AppUtils.buildNormalText(
+                                              text: "Invoice Type")),
                                       const SizedBox(width: 5),
                                       Expanded(
-                                        flex: 3,
-                                        child: AppUtils.buildNormalText(
-                                            text: "Doc Type"),
-                                      ),
+                                          flex: 3,
+                                          child: AppUtils.buildNormalText(
+                                              text: "Doc Type")),
                                     ],
                                   ),
                                   const SizedBox(height: 5),
                                   Row(
                                     children: [
                                       Expanded(
-                                          flex: 5,
-                                          child: DropdownSearch<
-                                              MapEntry<String, String>>(
-                                            enabled: true,
-                                            selectedItem: selectedinvoiceType,
-                                            items: invoiceType.entries.toList(),
-                                            itemAsString: (entry) =>
-                                                entry.value,
-                                            onChanged: (entry) {
-                                              if (entry != null) {
-                                                setState(() {
-                                                  selectedPendingItems[index]
-                                                      .invoiceType = entry.key;
-                                                });
-                                              }
-                                            },
-                                          )),
+                                        flex: 5,
+                                        child: DropdownSearch<
+                                            MapEntry<String, String>>(
+                                          enabled: true,
+                                          selectedItem: selectedinvoiceType,
+                                          items: invoiceType.entries.toList(),
+                                          itemAsString: (entry) => entry.value,
+                                          onChanged: (entry) {
+                                            if (entry != null) {
+                                              setState(() {
+                                                selectedPendingItems[index]
+                                                    .invoiceType = entry.key;
+                                              });
+                                            }
+                                          },
+                                        ),
+                                      ),
                                       const SizedBox(width: 5),
                                       Expanded(
                                         flex: 5,
@@ -993,10 +1551,10 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                                               });
                                             }
                                           },
-                                          popupProps: PopupProps.menu(
+                                          popupProps: const PopupProps.menu(
                                               showSearchBox: true),
                                           dropdownDecoratorProps:
-                                              DropDownDecoratorProps(
+                                              const DropDownDecoratorProps(
                                             dropdownSearchDecoration:
                                                 InputDecoration(
                                               contentPadding:
@@ -1010,9 +1568,8 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 5),
-                                  // Item Name (Always show)
 
+                                  const SizedBox(height: 5),
                                   AppUtils.buildNormalText(text: "Item Name"),
                                   const SizedBox(height: 5),
                                   TextFormField(
@@ -1047,6 +1604,13 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                                             selectedPendingItems[index]
                                                 .quantity
                                                 .toString(),
+                                        keyboardType: const TextInputType
+                                            .numberWithOptions(
+                                            decimal: true, signed: false),
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.allow(
+                                              RegExp(r'^\d*\.?\d*$'))
+                                        ],
                                         onChanged: (value) {
                                           setState(() {
                                             selectedPendingItems[index]
@@ -1071,6 +1635,13 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                                             selectedPendingItems[index]
                                                 .unitPrice
                                                 .toString(),
+                                        keyboardType: const TextInputType
+                                            .numberWithOptions(
+                                            decimal: true, signed: false),
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.allow(
+                                              RegExp(r'^\d*\.?\d*$'))
+                                        ],
                                         onChanged: (value) {
                                           setState(() {
                                             selectedPendingItems[index]
@@ -1197,7 +1768,6 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                                   ]),
 
                                   const SizedBox(height: 10),
-
                                   AppUtils.buildNormalText(text: "Total"),
                                   TextFormField(
                                     readOnly: true,
@@ -1213,8 +1783,8 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                                     ),
                                   ),
 
-                                  // 🔽 LME-Specific Section
-                                  if (isLME) ...[
+                                  // 🔥 Conditional LME Fields
+                                  if (isLME && isFinalDoc) ...[
                                     const SizedBox(height: 10),
                                     Row(children: [
                                       Expanded(
@@ -1351,8 +1921,80 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                                           });
                                         }
                                       },
-                                    )
+                                    ),
+                                  ] else if (isLME && isProvisionalDoc) ...[
+                                    const SizedBox(height: 10),
+                                    Row(children: [
+                                      Expanded(
+                                          flex: 3,
+                                          child: AppUtils.buildNormalText(
+                                              text: "LME Level %")),
+                                      Expanded(
+                                          flex: 3,
+                                          child: AppUtils.buildNormalText(
+                                              text: "Control %")),
+                                    ]),
+                                    const SizedBox(height: 5),
+                                    Row(children: [
+                                      Expanded(
+                                        flex: 3,
+                                        child: TextFormField(
+                                          initialValue:
+                                              selectedPendingItems[index]
+                                                  .lMELevelFormula
+                                                  .toString(),
+                                          onChanged: (value) {
+                                            selectedPendingItems[index]
+                                                    .lMELevelFormula =
+                                                double.tryParse(value) ?? 0.0;
+                                          },
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder()),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Expanded(
+                                        flex: 3,
+                                        child: TextFormField(
+                                          readOnly: true,
+                                          initialValue:
+                                              selectedPendingItems[index]
+                                                  .controlPercentage
+                                                  .toString(),
+                                          decoration: InputDecoration(
+                                            filled: true,
+                                            fillColor: Colors.grey.shade200,
+                                            border: const OutlineInputBorder(),
+                                          ),
+                                        ),
+                                      ),
+                                    ]),
                                   ],
+                                  const SizedBox(height: 10),
+                                  AppUtils.buildNormalText(
+                                      text: "Hedging Required"),
+                                  DropdownSearch<MapEntry<String, String>>(
+                                    selectedItem:
+                                        headingType.entries.firstWhere(
+                                      (entry) =>
+                                          entry.key.toUpperCase() ==
+                                          (selectedPendingItems[index]
+                                                      .hedgingRequired ??
+                                                  '')
+                                              .toUpperCase(),
+                                      orElse: () => const MapEntry("N", "No"),
+                                    ),
+                                    items: headingType.entries.toList(),
+                                    itemAsString: (entry) => entry.value,
+                                    onChanged: (entry) {
+                                      if (entry != null) {
+                                        setState(() {
+                                          selectedPendingItems[index]
+                                              .hedgingRequired = entry.key;
+                                        });
+                                      }
+                                    },
+                                  ),
                                   AppUtils.buildNormalText(
                                       text: "Purchase Remarks"),
                                   const SizedBox(height: 5),
@@ -1367,7 +2009,6 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                                     decoration: const InputDecoration(
                                         border: OutlineInputBorder()),
                                   ),
-
                                   const SizedBox(height: 10),
                                 ],
                               ),
@@ -1376,12 +2017,132 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
                         ],
                       ),
                     );
-                  })
-              : Center(
-                  child: Text("No Data!"),
-                ),
+                  },
+                )
+              : const Center(child: Text("No items found")),
         ],
       ),
+    );
+  }
+
+  Widget _buildLMEPercentageSection(int index) {
+    final item = selectedPendingItems[index];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Expanded(
+              flex: 3, child: AppUtils.buildNormalText(text: "LME Level %")),
+          Expanded(flex: 3, child: AppUtils.buildNormalText(text: "Control %")),
+        ]),
+        const SizedBox(height: 5),
+        Row(children: [
+          Expanded(
+            flex: 3,
+            child: TextFormField(
+              initialValue: item.lMELevelFormula.toString(),
+              onChanged: (value) {
+                item.lMELevelFormula = double.tryParse(value) ?? 0.0;
+              },
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+            ),
+          ),
+          const SizedBox(width: 5),
+          Expanded(
+            flex: 3,
+            child: TextFormField(
+              readOnly: true,
+              initialValue: item.controlPercentage.toString(),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.grey.shade200,
+                border: const OutlineInputBorder(),
+              ),
+            ),
+          ),
+        ]),
+      ],
+    );
+  }
+
+  Widget _buildLMEAmountSection(int index) {
+    final item = selectedPendingItems[index];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Expanded(
+              flex: 4, child: AppUtils.buildNormalText(text: "LME Amount")),
+          Expanded(
+              flex: 3, child: AppUtils.buildNormalText(text: "LME Fix Date")),
+          Expanded(
+              flex: 3, child: AppUtils.buildNormalText(text: "Contango Amt")),
+        ]),
+        const SizedBox(height: 5),
+        Row(children: [
+          Expanded(
+            flex: 4,
+            child: TextFormField(
+              initialValue: item.lMEAmount.toString(),
+              onChanged: (value) {
+                item.lMEAmount = double.tryParse(value) ?? 0.0;
+              },
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+            ),
+          ),
+          const SizedBox(width: 5),
+          Expanded(
+            flex: 3,
+            child: TextFormField(
+              readOnly: true,
+              controller: TextEditingController(
+                text: item.lMEFixationDate ?? '',
+              ),
+              onTap: () => _selectDate(index),
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+            ),
+          ),
+          const SizedBox(width: 5),
+          Expanded(
+            flex: 3,
+            child: TextFormField(
+              initialValue: item.contango.toString(),
+              onChanged: (value) {
+                item.contango = int.tryParse(value) ?? 0;
+              },
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+            ),
+          ),
+        ]),
+      ],
+    );
+  }
+
+  Widget _buildHedgingDropdown(int index) {
+    final item = selectedPendingItems[index];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 10),
+        AppUtils.buildNormalText(text: "Hedging Required"),
+        DropdownSearch<MapEntry<String, String>>(
+          selectedItem: headingType.entries.firstWhere(
+            (entry) =>
+                entry.key.toUpperCase() ==
+                (item.hedgingRequired ?? '').toUpperCase(),
+            orElse: () => const MapEntry("N", "No"),
+          ),
+          items: headingType.entries.toList(),
+          itemAsString: (entry) => entry.value,
+          onChanged: (entry) {
+            if (entry != null) {
+              setState(() {
+                item.hedgingRequired = entry.key;
+              });
+            }
+          },
+        ),
+      ],
     );
   }
 
@@ -1503,6 +2264,7 @@ class _PriceListUpdateState extends State<PriceListUpdate> {
     map['PriceStatus'] = value1 == true ? "Close" : "Open";
     map['weighLocation'] = getwaybridgeCode;
     map['whsCode'] = getwhsCode;
+    map['formName'] = "pricelistupdate";
 
     log((jsonEncode(dataToSend)));
 

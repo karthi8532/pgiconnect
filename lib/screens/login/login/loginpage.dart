@@ -349,6 +349,13 @@ class _LoginPageState extends State<LoginPage> {
               'WeighLocationID', model.user!.weigLocid.toString());
           await Prefs.setWeighLocationName(
               'WeighLocationName', model.user!.weigLocname.toString());
+          if (model.user?.forms != null) {
+            List<Map<String, dynamic>> formsJson =
+                model.user!.forms!.map((e) => e.toJson()).toList();
+
+            // Save as JSON string
+            await Prefs.setFormList("forms", model.user?.forms ?? []);
+          }
 
           Navigator.push(
             context,
@@ -419,22 +426,6 @@ class _LoginPageState extends State<LoginPage> {
     }, null);
   }
 
-  Future addsharedpref(LoginModel model) async {
-    await Prefs.setLoggedIn("isLogged", true);
-    await Prefs.setFullName("fullName", "");
-
-    await Prefs.setEmpID("Id", model.user!.empID.toString());
-    await Prefs.setToken("token", model.token.toString());
-
-    if (context.mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-          builder: (context) => DashboardScreen(),
-        ),
-        (Route<dynamic> route) => false,
-      );
-    }
-  }
 
   void onexitpopup() {
     Navigator.of(context).pop();

@@ -878,6 +878,8 @@ class ApiService {
     request.fields['supervisor'] = finalMap['supervisor'];
     request.fields['status'] = finalMap['status'];
     request.fields['projCode'] = finalMap['projCode'];
+    request.fields['formName'] = finalMap['formName']; //Form Name
+    
     request.fields['items'] = jsonEncode(items);
     request.fields['createdBy'] = finalMap['createdBy'];
     request.fields['user2'] = finalMap['user2'];
@@ -1088,44 +1090,66 @@ class ApiService {
   }
 
   static Future<List<NewItemModel>> getnewItem(
-      getDBName, getBranchName, getTicketNo,
-      {String filter = ""}) async {
+    getDBName,
+    getBranchName,
+    getTicketNo, {
+    String filter = "",
+  }) async {
     Map<String, String> headers = {
       "Content-Type": "application/json",
       "Authorization": "Bearer ${Prefs.getToken('token')}",
     };
+
     final response = await http.get(
-        Uri.parse(
-            "${Appconstant.apiBaseUrl}api/yardunloading/details/$getDBName/$getBranchName?field=product&weighNo=$getTicketNo"),
-        headers: headers);
+      Uri.parse(
+          "${Appconstant.apiBaseUrl}api/yardunloading/details/$getDBName/$getBranchName?field=product&weighNo=$getTicketNo"),
+      headers: headers,
+    );
+
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body)['result'];
 
+      // map response into models
+      List<NewItemModel> items =
+          data.map((item) => NewItemModel.fromJson(item)).toList();
+
       if (filter.isEmpty) {
-        return data.map((item) => NewItemModel.fromJson(item)).toList();
+        // return all items when no search text
+        return items;
       }
-      return data
-          .map((item) => NewItemModel.fromJson(item))
-          .where((item) =>
-              item.itemCode
-                  .toString()
-                  .toLowerCase()
-                  .contains(filter.toString().toLowerCase()) ||
-              item.documentType
-                  .toString()
-                  .toLowerCase()
-                  .contains(filter.toString().toLowerCase()) ||
-              item.invoiceType
-                  .toString()
-                  .toLowerCase()
-                  .contains(filter.toString().toLowerCase()) ||
-              item.itemName
-                  .toString()
-                  .toLowerCase()
-                  .contains(filter.toString().toLowerCase()))
-          .toList();
+
+      // filter on itemCode OR itemName OR invoiceType OR documentType
+      return items.where((item) {
+        final search = filter.toLowerCase();
+        return (item.itemCode?.toLowerCase().contains(search) ?? false) ||
+            (item.itemName?.toLowerCase().contains(search) ?? false) ||
+            (item.invoiceType?.toLowerCase().contains(search) ?? false) ||
+            (item.documentType?.toLowerCase().contains(search) ?? false);
+      }).toList();
     } else {
       throw Exception('Failed to load items');
+    }
+  }
+
+  static Future<http.Response> updatepassword(
+    getDBName,
+    getBranchName,
+    String userId,
+    String userPassword,
+  ) async {
+    Map<String, String> headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${Prefs.getToken('token')}",
+    };
+    try {
+      final response = await http.post(
+          Uri.parse(
+              '${Appconstant.apiBaseUrl}api/reset-password/$getDBName/$getBranchName?userId=$userId&newPassword=$userPassword'),
+          headers: headers);
+
+      return response;
+    } catch (e) {
+      throw HttpException("Network error: ${e.toString()}");
     }
   }
 }

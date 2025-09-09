@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class LoginModel {
   bool? success;
   User? user;
@@ -37,17 +39,20 @@ class User {
   String? dBName;
   String? weigLocid;
   String? weigLocname;
+  List<FormItem>? forms;
 
-  User(
-      {this.employeName,
-      this.userId,
-      this.password,
-      this.empID,
-      this.branch,
-      this.branchName,
-      this.dBName,
-      this.weigLocid,
-      this.weigLocname});
+  User({
+    this.employeName,
+    this.userId,
+    this.password,
+    this.empID,
+    this.branch,
+    this.branchName,
+    this.dBName,
+    this.weigLocid,
+    this.weigLocname,
+    this.forms,
+  });
 
   User.fromJson(Map<String, dynamic> json) {
     employeName = json['employeName'];
@@ -59,6 +64,12 @@ class User {
     dBName = json['DBName'];
     weigLocid = json['WeigLocid'];
     weigLocname = json['WeigLocValue'];
+    if (json['formAccess'] != null) {
+      List<dynamic> formJson = jsonDecode(json['formAccess']);
+      forms = formJson.map((f) => FormItem.fromJson(f)).toList();
+    } else {
+      forms = [];
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -72,6 +83,9 @@ class User {
     data['DBName'] = dBName;
     data['WeigLocid'] = weigLocid;
     data['WeigLocValue'] = weigLocname;
+    if (forms != null) {
+      data['formAccess'] = forms!.map((f) => f.toJson()).toList();
+    }
     return data;
   }
 }
@@ -89,5 +103,25 @@ class Token {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['accessToken'] = accessToken;
     return data;
+  }
+}
+
+class FormItem {
+  String formId;
+
+  FormItem({required this.formId});
+
+  Map<String, String> toMap() => {"formId": formId};
+
+  factory FormItem.fromMap(Map<String, String> map) {
+    return FormItem(formId: map["formId"] ?? "");
+  }
+
+  factory FormItem.fromJson(Map<String, dynamic> json) {
+    return FormItem(formId: json['formId'] ?? "");
+  }
+
+  Map<String, dynamic> toJson() {
+    return {"formId": formId};
   }
 }

@@ -334,7 +334,7 @@ class _YardUnloadingSelectionPageState
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: const [
-                        Text('Document Type',
+                        Text('Weigh Ticket No.',
                             style: TextStyle(color: Colors.black)),
                         Text('Inv Type', style: TextStyle(color: Colors.black)),
                       ],
@@ -344,7 +344,7 @@ class _YardUnloadingSelectionPageState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          product.documentType.toString() ?? '',
+                          product.weigTicketNum.toString() ?? '',
                           style: const TextStyle(color: Colors.grey),
                         ),
                         Text(
